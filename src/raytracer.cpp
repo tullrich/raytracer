@@ -1,24 +1,30 @@
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <boost/program_options.hpp>
 #include "raytracer.h"
 
 namespace raytracer {
 
-Raytracer::Raytracer() : img(NULL), hx(DEFAULT_IMG_HEIGHT), wx(DEFAULT_IMG_WIDTH), outpath(DEFAULT_OUT_PATH)
+Raytracer::Raytracer(const string &outputfile = DEFAULT_OUT_PATH, int width = DEFAULT_IMG_WIDTH, int height = DEFAULT_IMG_HEIGHT) : outpath(outputfile)
 {
     initImage();
-    img = allocateImage(wx, hx);
+    img = allocateImage(width, height);
 }
-
 
 void Raytracer::trace()
 {
-    if (saveImage(img, outpath.c_str()))
+    if (!saveImage(img, outpath.c_str()))
     {
         std::cout << "Error: FreeImage_Save()" << std::endl;
     }
     std::cout << "Saved" << std::endl;
+}
+
+
+void Raytracer::updateOptions(options_map &om)
+{
+    
 }
 
 } /* namespace raytracer */
@@ -35,13 +41,28 @@ using namespace std;
  */
 bool validateInput(po::variables_map &vm)
 {
-    if (!vm.count("output-file")) 
+    return vm.count("output-filepath");
+}
+
+/**
+ * open open input file CONFIG_FILEPATH and read it into the store using the provided options_description
+ * @param options options to read from the config filename
+ * @param vm      the value map to update
+ */
+void parseConfig(const po::options_description &options, po::variables_map &vm) 
+{
+    ifstream config_file(CONFIG_FILEPATH);
+
+    if (config_file.is_open())
     {
-        cout << "ERROR: no output-file specified" << endl;
-        return false;
+        po::store(po::parse_config_file(config_file, options), vm);
+    }
+    else
+    {
+        cout << "WARNING: No input file named " << CONFIG_FILEPATH << " found" << endl;
     }
 
-    return true;
+    //TODO: feels like a try/finally is needed
 }
 
 /**
@@ -51,25 +72,51 @@ bool validateInput(po::variables_map &vm)
  * @param vm   map to insert inputs
  * @return valid inputs
  */
-bool parseInput(int argc, char *argv[], po::variables_map &vm)
+bool getInput(int argc, char *argv[], po::variables_map &vm)
 {
-    po::options_description pd("Options");
-    pd.add_options()
+    // commandline configurable only
+    po::options_description pd_cmd("Options");
+    pd_cmd.add_options()
         ("help", "produce help message")
-        ("w", po::value<int>(), "set image output width")
-        ("h", po::value<int>(), "set image output height")
-        ("output-file", po::value< string >(), "image output filename")
     ;
 
-    po::positional_options_description pod;
-    pod.add("output-file", 1);
+    // configurable in the config file and cmdline
+    po::options_description pd_config("Configuration");
+    pd_config.add_options()
+        ("w", po::value<int>(), "set image output width")
+        ("h", po::value<int>(), "set image output height")
+    ;
 
-    po::store(po::command_line_parser(argc, argv).options(pd).positional(pod).run(), vm);
+    // same as pd_config, but will not be displayed in the help text
+    po::options_description pd_hidden("Hidden options");
+    pd_hidden.add_options()
+        ("output-filepath", po::value< string >(), "image output filename")
+    ;   
+
+    po::positional_options_description pod;
+    pod.add("output-filepath", 1);
+
+    // read options, config, and hidden from the commandline
+    po::options_description cmdline_options;
+    cmdline_options.add(pd_cmd).add(pd_config).add(pd_hidden);
+
+    // read config and hidden options only from the config file
+    po::options_description config_file_options;
+    config_file_options.add(pd_config).add(pd_hidden);
+
+    po::store(po::command_line_parser(argc, argv).options(cmdline_options).positional(pod).run(), vm);
+    parseConfig(config_file_options, vm);
     po::notify(vm); 
 
+    // print help if bad inputs are found or its requested
     if (!validateInput(vm) || vm.count("help"))
     {
-        cout << pd << endl;
+        po::options_description visible("Allowed options");
+        visible.add(pd_cmd).add(pd_config);
+
+        cout << "Usage: raytracer [options] output-filepath" << endl;
+        cout << visible << endl;
+
         return false;
     }
 
@@ -82,13 +129,14 @@ bool parseInput(int argc, char *argv[], po::variables_map &vm)
  */
 void runRayTracer(po::variables_map &vm)
 {
-    Raytracer tracer;
     string filename_str;
 
-    filename_str = vm["output-file"].as< string >();
+    filename_str = vm["output-filepath"].as< string >();
     cout << filename_str << endl;
 
-    tracer.setOutpath(filename_str);
+    Raytracer tracer;
+
+    tracer.updateOptions(vm);
     tracer.trace();
 }
 
@@ -96,7 +144,7 @@ int main(int argc, char *argv[])
 {
     po::variables_map vm;
 
-    if (!parseInput(argc, argv, vm))
+    if (!getInput(argc, argv, vm))
     {
         // bad input
         return 1;
