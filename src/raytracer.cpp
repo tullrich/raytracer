@@ -1,10 +1,18 @@
 #include <iostream>
 #include "raytracer.h"
+#include "FreeImage.h"
 
 using namespace std;
 
-int main(int argc, char *argv[]
-){
+void initFreeImage() 
+{
+
+	FreeImage_Initialise(TRUE);
+}
+
+
+int main(int argc, char *argv[])
+{
 	cout << " main " << endl;
 
 	return 0;
