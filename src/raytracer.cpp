@@ -29,20 +29,23 @@ using namespace std;
 int main(int argc, char *argv[])
 {
 
-    po::options_description desc("Allowed options");
-    desc.add_options()
+    po::options_description pd;
+    pd.add_options()
         ("help", "produce help message")
-        ("w", po::value<int>(), "set compression level")
-        ("w", po::value<int>(), "set compression level")
+        ("w", po::value<int>(), "set image output width")
+        ("h", po::value<int>(), "set image output height")
     ;
 
+    po::positional_options_description pod;
+    pod.add("input-file", 1);
+
     po::variables_map vm;
-    po::store(po::parse_command_line(argc, argv, desc), vm);
+    po::store(po::command_line_parser(argc, argv).options(pd).positional(pod).run(), vm);
     po::notify(vm); 
 
     if (vm.count("help")) 
     {
-        cout << desc << "\n";
+        cout << pd << "\n";
         return 1;
     }
 
