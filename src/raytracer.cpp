@@ -21,10 +21,27 @@ void Raytracer::trace()
     std::cout << "Saved" << std::endl;
 }
 
-
-void Raytracer::updateOptions(options_map &om)
+static bool getIntOption(int &option, const string &option_name, const options_map &om)
 {
-    
+    if (om.count(option_name))
+    {
+        option = om[option_name].as<int>();
+    }
+}
+
+
+Raytracer* RaytraceFactory::getRaytracerWithOptions(const options_map &om)
+{
+    string filename_str;
+    int w = DEFAULT_IMG_WIDTH;
+    int h = DEFAULT_IMG_HEIGHT;
+
+    filename_str = om[OPTION_OUTPATH].as< string >();
+
+    getIntOption(w, OPTION_WIDTH, om);
+    getIntOption(h, OPTION_HEIGHT, om);
+
+    return new Raytracer(filename_str, w, h);
 }
 
 } /* namespace raytracer */
@@ -41,7 +58,7 @@ using namespace std;
  */
 bool validateInput(po::variables_map &vm)
 {
-    return vm.count("output-filepath");
+    return vm.count(OPTION_OUTPATH);
 }
 
 /**
@@ -83,18 +100,18 @@ bool getInput(int argc, char *argv[], po::variables_map &vm)
     // configurable in the config file and cmdline
     po::options_description pd_config("Configuration");
     pd_config.add_options()
-        ("w", po::value<int>(), "set image output width")
-        ("h", po::value<int>(), "set image output height")
+        (OPTION_WIDTH, po::value<int>(), "set image output width")
+        (OPTION_HEIGHT, po::value<int>(), "set image output height")
     ;
 
     // same as pd_config, but will not be displayed in the help text
     po::options_description pd_hidden("Hidden options");
     pd_hidden.add_options()
-        ("output-filepath", po::value< string >(), "image output filename")
+        (OPTION_OUTPATH, po::value< string >(), "image output filename")
     ;   
 
     po::positional_options_description pod;
-    pod.add("output-filepath", 1);
+    pod.add(OPTION_OUTPATH, 1);
 
     // read options, config, and hidden from the commandline
     po::options_description cmdline_options;
@@ -130,14 +147,13 @@ bool getInput(int argc, char *argv[], po::variables_map &vm)
 void runRayTracer(po::variables_map &vm)
 {
     string filename_str;
+    Raytracer *tracer;
 
-    filename_str = vm["output-filepath"].as< string >();
+    filename_str = vm[OPTION_OUTPATH].as< string >();
     cout << filename_str << endl;
 
-    Raytracer tracer;
-
-    tracer.updateOptions(vm);
-    tracer.trace();
+    tracer = RaytraceFactory::getRaytracerWithOptions(vm);
+    tracer->trace();
 }
 
 int main(int argc, char *argv[])

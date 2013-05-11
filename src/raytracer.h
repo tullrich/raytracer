@@ -4,10 +4,6 @@
 #include <string>
 #include "rtimage.h"
 
-// forward declaration so we dont need to include boost/program_options.hpp
-class boost::program_options::variables_map;
-typedef boost::program_options::variables_map options_map;
-
 namespace raytracer {
 
 using std::string;
@@ -19,6 +15,11 @@ using namespace raytracer::image;
 #define DEFAULT_OUT_PATH "traceimage.png"	// default output image filepath
 
 #define CONFIG_FILEPATH "raytracer.cfg" // input configuration filepath
+
+#define OPTION_WIDTH "w"
+#define OPTION_HEIGHT "h"
+#define OPTION_OUTPATH "output-filepath"
+
 
 /**
  * raytracer root
@@ -32,12 +33,32 @@ public:
 	string& getOutpath() { return outpath; };
 	void setOutpath(const string &newpath) {  outpath = newpath; };
 
+	/**
+	 * run the raytrace algorithm
+	 */
 	void trace();
-	void updateOptions(options_map &om);
+
+
 
 private:
     rtimage *img;
  	string outpath;
+};
+
+
+// forward declaration so we dont need to include boost/program_options.hpp
+class boost::program_options::variables_map;
+typedef boost::program_options::variables_map options_map;
+
+class RaytraceFactory
+{
+public:
+	/**
+	 * allocates a new {@ Raytracer} on the heap configured with specified options in om
+	 * @param om a map of options to be set
+	 * @return ref to the allocated {@ Raytracer}
+	 */
+	static Raytracer* getRaytracerWithOptions(const options_map &om);
 };
 
 } /* namespace raytracer */
