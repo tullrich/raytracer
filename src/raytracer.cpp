@@ -18,7 +18,7 @@ Raytracer::Raytracer(const string &outputfile, int width, int height) : outpath(
 void Raytracer::trace()
 {
     if (!saveImage(img, outpath.c_str()))
-    {
+    {\
         std::cout << "Error: FreeImage_Save()" << std::endl;
     }
     std::cout << "Saved" << std::endl;
