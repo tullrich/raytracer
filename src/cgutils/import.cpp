@@ -14,7 +14,7 @@ AssimpAssetImporter::AssimpAssetImporter() : scene(NULL)
 
 }
 
-bool AssimpAssetImporter::Open(const std::string& path)
+bool AssimpAssetImporter::open(const std::string& path)
 {
 
 	scene = importer.ReadFile( path, 
@@ -33,31 +33,36 @@ bool AssimpAssetImporter::Open(const std::string& path)
 	return true;
 }
 
-const char* AssimpAssetImporter::Error() const
+const char* AssimpAssetImporter::error() const
 {
 	return importer.GetErrorString();
 }
 
 
-int AssimpAssetImporter::NumMeshes()
+int AssimpAssetImporter::numMeshes()
 {
 	CHECK_ASSET_OPEN()
 
 	return scene->mNumMeshes;
 }
 
-int AssimpAssetImporter::NumMaterials()
+int AssimpAssetImporter::numMaterials()
 {
 	CHECK_ASSET_OPEN()
 
 	return scene->mNumMaterials;
 }
 
-int AssimpAssetImporter::GetMeshAtIndex(int index)
+int AssimpAssetImporter::getMeshAtIndex(int index)
 {
 	CHECK_ASSET_OPEN()
 	
 	aiMesh* mesh = scene->mMeshes[index];
+}
+
+void AssimpAssetImporter::accept(const AssetVisitor &visitor)
+{
+	
 }
 
 } /* namespace cgutils */

@@ -12,7 +12,7 @@ set (RAYTRACER_CMAKE_DIR cmake)
 
 # directory vars
 set (EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
-file(GLOB RAYTRACER_SRCFILES "${RAYTRACER_SRCS_DIR}/*.cpp")
+file(GLOB RAYTRACER_SRCFILES "${RAYTRACER_SRCS_DIR}/*.cpp" "${RAYTRACER_SRCS_DIR}/cgutils/*.cpp")
 
 # search path
 include_directories("${PROJECT_BINARY_DIR}")

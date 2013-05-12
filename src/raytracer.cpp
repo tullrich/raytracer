@@ -2,6 +2,7 @@
 #include <fstream>
 #include <vector>
 #include <boost/program_options.hpp>
+#include <boost/scoped_ptr.hpp>
 
 #include "raytracer.h"
 #include "scenegraph.h"
@@ -185,6 +186,22 @@ static Raytracer* buildRayTracer(const po::variables_map &vm)
     return builder.buildRaytracer();
 }
 
+static void addToScene(const SceneBuilder &sb, string &path)
+{
+
+    AssimpAssetImporter file;
+    
+    if(file.open(path))
+    {
+        file.accept(sb);
+    }
+    else
+    {
+        cout << "Warning: could not open asset file '" << path << "'" <\< endl;
+    }
+
+} 
+
 /**
  * create a {@link Scenegraph} from input map vm
  * @param vm [description]
@@ -192,19 +209,20 @@ static Raytracer* buildRayTracer(const po::variables_map &vm)
  */
 static SceneGraph* buildScene(const po::variables_map &vm)
 {
-    CGUTILS_ASSERT(vm.count(OPTION_ASSETPATH));
-
     SceneGraph *scene;
+    const SceneBuilder *builder;
     vector<string> assetpaths;
 
-    scene = SceneGraphFactory::getSceneGraph();
-    assetpaths = vm[OPTION_ASSETPATH].as< vector<string> >();
+    CGUTILS_ASSERT(vm.count(OPTION_ASSETPATH)); // bomb if we somehow got here without assets
 
+    scene = SceneGraphFactory::getSceneGraph();
+    builder = scene->getSceneBuilder();
+    assetpaths = vm[OPTION_ASSETPATH].as< vector<string> >();
 
     for (string filename : assetpaths)
     {
         cout << "\t Processing assetfile: " << filename << endl;
-        
+        addToScene(*builder, filename);
     }
 
     return scene;

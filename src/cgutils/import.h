@@ -31,9 +31,14 @@ typedef struct
 	bool hasTangentsAndBitangents;
 	bool hasVertexColors;
 
-} MeshData;
+} mesh_data;
 
-class AssimpAssetImporter 
+class AssetVisitor
+{
+	virtual const void visit(const mesh_data &mesh) = 0;
+};
+
+class AssimpAssetImporter
 {
 
 public:
@@ -46,35 +51,38 @@ public:
 	 * @param  path Path to the file ond disk
 	 * @return      True if file was found and read correctly. 
 	 */
-	bool Open(const std::string& path);
+	bool open(const std::string& path);
 
 	/**
 	 * Get the last error from the underlying Assimp importer
 	 * @return String containing the error message direct from Assimp
 	 */
-	const char* Error() const;
+	const char* error() const;
 
 	/**
 	 * Get the number of meshes found in the file.
 	 * An asset must be open.
 	 * @return total number of meshes
 	 */
-	int NumMeshes();
+	int numMeshes();
 
 	/**
 	 * Get the number of materials found in the file.
 	 * An asset must be open.
 	 * @return total number of materials
 	 */
-	int NumMaterials();
+	int numMaterials();
 
 	/**
 	 * Get the Mesh in the open file at the given index. 
 	 * @param  index index between 0 and NumMeshes()-1
 	 * @return       pointer to a Assimp_Mesh that references data owned by Assimp
 	 */
-	int GetMeshAtIndex(int index);
+	int getMeshAtIndex(int index);
 
+
+	void accept(const AssetVisitor &visitor)
+;
 protected:
 	Assimp::Importer importer;
 	const aiScene* scene;

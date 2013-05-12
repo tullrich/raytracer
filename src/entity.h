@@ -5,17 +5,20 @@
 
 namespace raytracer {
 
-struct AABB 
+using namespace::glm;
+
+typedef struct 
 {
 	vec3 max;
 	vec3 min;
-};
+} AABB;
 
 class Entity
 {
 public:
 	AABB aabb;
 };
+
 
 } /* namespace raytracer */
 

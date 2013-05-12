@@ -6,16 +6,35 @@
 
 namespace raytracer {
 
+using namespace::cgutils;
+
+class SceneGraph; // forward declaration
+
+class SceneBuilder : public AssetVisitor
+{
+public:
+	SceneBuilder(SceneGraph *s) : scene(s) { };
+	const void visit(const mesh_data &mesh);
+
+private:
+	SceneGraph *scene;
+};
+
 /**
  * Holds scene information and facilitates quick ray 
  */
 class SceneGraph
 {
 public:
-	SceneGraph() {};
-	virtual ~SceneGraph() {};
-protected:
+	SceneGraph();
+
+	virtual const SceneBuilder* getSceneBuilder();
+
+	virtual ~SceneGraph();
 	virtual void addObject() = 0;
+
+private:
+	SceneBuilder *builder;
 };
 
 /**
