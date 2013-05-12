@@ -3,16 +3,14 @@
 
 #include <string>
 #include "rtimage.h"
+#include "scenegraph.h"
 
 namespace raytracer {
 
 using std::string;
 using namespace raytracer::image;
 
-/* Default input values */
-#define DEFAULT_IMG_WIDTH 100	// default output image height value
-#define DEFAULT_IMG_HEIGHT 100	// default output image height value
-#define DEFAULT_OUT_PATH "traceimage.png"	// default output image filepath
+
 
 #define CONFIG_FILEPATH "raytracer.cfg" // input configuration filepath
 
@@ -42,23 +40,45 @@ public:
 
 private:
     rtimage *img;
+
+    /**
+     * image output pathname
+     */
  	string outpath;
+
+ 	/**
+ 	 * Scene info for the raytracer
+ 	 */
+ 	SceneGraph *scene;
 };
 
 
-// forward declaration so we dont need to include boost/program_options.hpp
-class boost::program_options::variables_map;
-typedef boost::program_options::variables_map options_map;
+/* Default input values */
+#define DEFAULT_IMG_WIDTH 100	// default output image height value
+#define DEFAULT_IMG_HEIGHT 100	// default output image height value
+#define DEFAULT_OUT_PATH "traceimage.png"	// default output image filepath
 
-class RaytraceFactory
+/**
+ * {@ Raytrace} builder class with config functions and default values
+ */
+class RaytraceBuilder
 {
 public:
+	RaytraceBuilder() : outputfile(DEFAULT_OUT_PATH), width(DEFAULT_IMG_WIDTH), height(DEFAULT_IMG_HEIGHT) {}
+
 	/**
-	 * allocates a new {@ Raytracer} on the heap configured with specified options in om
+	 * allocates a new {@ Raytracer} on the heap configured with specified builder options 
 	 * @param om a map of options to be set
-	 * @return ref to the allocated {@ Raytracer}
 	 */
-	static Raytracer* getRaytracerWithOptions(const options_map &om);
+	Raytracer* buildRaytracer();
+
+	void setOutpath(const string &newpath) {  outputfile = newpath; };
+	void setHeight(int height) { this->height = height; };
+	void setWidth(int width) { this->width = width; };
+private:
+	string outputfile;
+	int height;
+	int width;
 };
 
 } /* namespace raytracer */

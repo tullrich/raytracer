@@ -3,14 +3,17 @@
 #include <vector>
 #include <boost/program_options.hpp>
 #include "raytracer.h"
+#include "scenegraph.h"
 
 namespace raytracer {
 
-Raytracer::Raytracer(const string &outputfile = DEFAULT_OUT_PATH, int width = DEFAULT_IMG_WIDTH, int height = DEFAULT_IMG_HEIGHT) : outpath(outputfile)
+Raytracer::Raytracer(const string &outputfile, int width, int height) : outpath(outputfile)
 {
     initImage();
+
     img = allocateImage(width, height);
 }
+
 
 void Raytracer::trace()
 {
@@ -21,27 +24,11 @@ void Raytracer::trace()
     std::cout << "Saved" << std::endl;
 }
 
-static bool getIntOption(int &option, const string &option_name, const options_map &om)
+
+
+Raytracer* RaytraceBuilder::buildRaytracer()
 {
-    if (om.count(option_name))
-    {
-        option = om[option_name].as<int>();
-    }
-}
-
-
-Raytracer* RaytraceFactory::getRaytracerWithOptions(const options_map &om)
-{
-    string filename_str;
-    int w = DEFAULT_IMG_WIDTH;
-    int h = DEFAULT_IMG_HEIGHT;
-
-    filename_str = om[OPTION_OUTPATH].as< string >();
-
-    getIntOption(w, OPTION_WIDTH, om);
-    getIntOption(h, OPTION_HEIGHT, om);
-
-    return new Raytracer(filename_str, w, h);
+    return new Raytracer(outputfile, width, height);
 }
 
 } /* namespace raytracer */
@@ -56,7 +43,7 @@ using namespace std;
  * @param vm filled input map
  * @return everything validated
  */
-bool validateInput(po::variables_map &vm)
+static bool validateInput(po::variables_map &vm)
 {
     return vm.count(OPTION_OUTPATH);
 }
@@ -66,7 +53,7 @@ bool validateInput(po::variables_map &vm)
  * @param options options to read from the config filename
  * @param vm      the value map to update
  */
-void parseConfig(const po::options_description &options, po::variables_map &vm) 
+static void parseConfig(const po::options_description &options, po::variables_map &vm) 
 {
     ifstream config_file(CONFIG_FILEPATH);
 
@@ -89,7 +76,7 @@ void parseConfig(const po::options_description &options, po::variables_map &vm)
  * @param vm   map to insert inputs
  * @return valid inputs
  */
-bool getInput(int argc, char *argv[], po::variables_map &vm)
+static bool getInput(int argc, char *argv[], po::variables_map &vm)
 {
     // commandline configurable only
     po::options_description pd_cmd("Options");
@@ -140,19 +127,41 @@ bool getInput(int argc, char *argv[], po::variables_map &vm)
     return true;
 }
 
+
+static inline void getIntOption(int &option, const string &option_name, const po::variables_map &om)
+{
+
+    option = om[option_name].as<int>();
+}
+
 /**
  * create and run a {@link Raytracer} with inputs vm.
  * @param vm input to the raytracer
  */
-void runRayTracer(po::variables_map &vm)
+static void runRayTracer(const po::variables_map &vm)
 {
     string filename_str;
+    RaytraceBuilder builder;
     Raytracer *tracer;
 
-    filename_str = vm[OPTION_OUTPATH].as< string >();
-    cout << filename_str << endl;
+    if (vm.count(OPTION_HEIGHT))
+    {
+        int i = 0;
+        getIntOption(i, OPTION_HEIGHT, vm);
+        builder.setHeight(i);
+    }
 
-    tracer = RaytraceFactory::getRaytracerWithOptions(vm);
+    if (vm.count(OPTION_WIDTH))
+    {
+        int i = 0;
+        getIntOption(i, OPTION_WIDTH, vm);
+        builder.setWidth(i);
+    }
+
+    filename_str = vm[OPTION_OUTPATH].as< string >(); // already validated
+    builder.setOutpath(filename_str);
+
+    tracer = builder.buildRaytracer();
     tracer->trace();
 }
 
