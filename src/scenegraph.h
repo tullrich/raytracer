@@ -5,6 +5,9 @@
 
 namespace raytracer {
 
+/**
+ * Holds scene information and facilitates quick ray 
+ */
 class SceneGraph
 {
 public:
@@ -14,7 +17,9 @@ protected:
 	virtual void addObject() = 0;
 };
 
-
+/**
+ * Octree scenegraph implementation
+ */
 class OctreeSceneGraphImp : public SceneGraph
 {
 public:
@@ -24,6 +29,17 @@ protected:
 	virtual void addObject();
 };
 
+/**
+ * SceneGraph implementation factory
+ */
+class SceneGraphFactory
+{
+public:
+	/**
+	 * SceneGraph implementation factory
+	 */
+	static SceneGraph* getSceneGraph();
+};
 
 
 } /* namespace raytracer */

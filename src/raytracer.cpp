@@ -2,23 +2,30 @@
 #include <fstream>
 #include <vector>
 #include <boost/program_options.hpp>
+
 #include "raytracer.h"
 #include "scenegraph.h"
+#include "cgutils/cgutils.hpp"
+    
+using namespace cgutils;
 
 namespace raytracer {
 
 Raytracer::Raytracer(const string &outputfile, int width, int height) : outpath(outputfile)
 {
-    initImage();
+    scene = NULL;
 
-    img = allocateImage(width, height);
+    initImage();
+    img   = allocateImage(width, height);
 }
 
 
 void Raytracer::trace()
 {
+    CGUTILS_ASSERT(scene);
+
     if (!saveImage(img, outpath.c_str()))
-    {\
+    {
         std::cout << "Error: FreeImage_Save()" << std::endl;
     }
     std::cout << "Saved" << std::endl;
@@ -45,7 +52,7 @@ using namespace std;
  */
 static bool validateInput(po::variables_map &vm)
 {
-    return vm.count(OPTION_OUTPATH);
+    return vm.count(OPTION_ASSETPATH);
 }
 
 /**
@@ -87,6 +94,7 @@ static bool getInput(int argc, char *argv[], po::variables_map &vm)
     // configurable in the config file and cmdline
     po::options_description pd_config("Configuration");
     pd_config.add_options()
+        (OPTION_OUTPATH, po::value< string >(), "image output filename")
         (OPTION_WIDTH, po::value<int>(), "set image output width")
         (OPTION_HEIGHT, po::value<int>(), "set image output height")
     ;
@@ -94,11 +102,11 @@ static bool getInput(int argc, char *argv[], po::variables_map &vm)
     // same as pd_config, but will not be displayed in the help text
     po::options_description pd_hidden("Hidden options");
     pd_hidden.add_options()
-        (OPTION_OUTPATH, po::value< string >(), "image output filename")
+        (OPTION_ASSETPATH, po::value< vector<string> >(), "input asset file filename")
     ;   
 
     po::positional_options_description pod;
-    pod.add(OPTION_OUTPATH, 1);
+    pod.add(OPTION_ASSETPATH, -1);
 
     // read options, config, and hidden from the commandline
     po::options_description cmdline_options;
@@ -118,7 +126,7 @@ static bool getInput(int argc, char *argv[], po::variables_map &vm)
         po::options_description visible("Allowed options");
         visible.add(pd_cmd).add(pd_config);
 
-        cout << "Usage: raytracer [options] output-filepath" << endl;
+        cout << "Usage: raytracer [options] asset-filepath..." << endl;
         cout << visible << endl;
 
         return false;
@@ -127,7 +135,12 @@ static bool getInput(int argc, char *argv[], po::variables_map &vm)
     return true;
 }
 
-
+/**
+ * set var option from om[option_name] as an int
+ * @param option      var to set
+ * @param option_name string name of the option
+ * @param om          map of options
+ */
 static inline void getIntOption(int &option, const string &option_name, const po::variables_map &om)
 {
 
@@ -135,38 +148,71 @@ static inline void getIntOption(int &option, const string &option_name, const po
 }
 
 /**
- * create and run a {@link Raytracer} with inputs vm.
+ * create a {@link Raytracer} from input map vm.
  * @param vm input to the raytracer
+ * @return fully configured {@link Raytracer}
  */
-static void runRayTracer(const po::variables_map &vm)
+static Raytracer* buildRayTracer(const po::variables_map &vm)
 {
+    int i;
     string filename_str;
     RaytraceBuilder builder;
     Raytracer *tracer;
 
+    // option height
     if (vm.count(OPTION_HEIGHT))
     {
-        int i = 0;
+        i = 0;
         getIntOption(i, OPTION_HEIGHT, vm);
         builder.setHeight(i);
     }
 
+    // option width
     if (vm.count(OPTION_WIDTH))
     {
-        int i = 0;
+        i = 0;
         getIntOption(i, OPTION_WIDTH, vm);
         builder.setWidth(i);
     }
 
-    filename_str = vm[OPTION_OUTPATH].as< string >(); // already validated
-    builder.setOutpath(filename_str);
+    // option outpath
+    if (vm.count(OPTION_OUTPATH))
+    {
+        filename_str = vm[OPTION_OUTPATH].as< string >();
+        builder.setOutpath(filename_str);
+    }
 
-    tracer = builder.buildRaytracer();
-    tracer->trace();
+    return builder.buildRaytracer();
+}
+
+/**
+ * create a {@link Scenegraph} from input map vm
+ * @param vm [description]
+ * @return fully configured {@link SceneGraph}
+ */
+static SceneGraph* buildScene(const po::variables_map &vm)
+{
+    CGUTILS_ASSERT(vm.count(OPTION_ASSETPATH));
+
+    SceneGraph *scene;
+    vector<string> assetpaths;
+
+    scene = SceneGraphFactory::getSceneGraph();
+    assetpaths = vm[OPTION_ASSETPATH].as< vector<string> >();
+
+
+    for (string filename : assetpaths)
+    {
+        cout << "\t Processing assetfile: " << filename << endl;
+        
+    }
+
+    return scene;
 }
 
 int main(int argc, char *argv[])
 {
+    Raytracer *tracer;
     po::variables_map vm;
 
     if (!getInput(argc, argv, vm))
@@ -175,7 +221,10 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    runRayTracer(vm);
+    tracer = buildRayTracer(vm);
+    tracer->setScene(buildScene(vm));
+
+    tracer->trace();
 
 	return 0;
 }

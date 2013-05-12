@@ -17,6 +17,7 @@ using namespace raytracer::image;
 #define OPTION_WIDTH "w"
 #define OPTION_HEIGHT "h"
 #define OPTION_OUTPATH "output-filepath"
+#define OPTION_ASSETPATH "asset-filepath"
 
 
 /**
@@ -36,7 +37,8 @@ public:
 	 */
 	void trace();
 
-
+	/* setters */
+	void setScene(SceneGraph *scene) { this->scene = scene; };
 
 private:
     rtimage *img;
@@ -64,6 +66,9 @@ private:
 class RaytraceBuilder
 {
 public:
+	/**
+	 * setup default input values
+	 */
 	RaytraceBuilder() : outputfile(DEFAULT_OUT_PATH), width(DEFAULT_IMG_WIDTH), height(DEFAULT_IMG_HEIGHT) {}
 
 	/**
@@ -72,6 +77,7 @@ public:
 	 */
 	Raytracer* buildRaytracer();
 
+	/* setters */
 	void setOutpath(const string &newpath) {  outputfile = newpath; };
 	void setHeight(int height) { this->height = height; };
 	void setWidth(int width) { this->width = width; };

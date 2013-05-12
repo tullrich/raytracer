@@ -17,4 +17,11 @@ void OctreeSceneGraphImp::addObject()
 
 }
 
+SceneGraph* SceneGraphFactory::getSceneGraph()
+{
+	// preset for now
+	return new OctreeSceneGraphImp();
+}
+
+
 } /* namespace raytracer */
