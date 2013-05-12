@@ -2,6 +2,7 @@
 #define _SCENE_GRAPH_H_
 
 #include "cgutils/import.h"
+#include "entity.h"
 
 namespace raytracer {
 
