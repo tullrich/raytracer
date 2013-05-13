@@ -2,6 +2,7 @@
 #define _CG_UTILS_HPP
 
 #include <string>
+#include <memory>
 using typename std::string;
 
 #include <iostream>
@@ -64,6 +65,31 @@ template<typename T>
 class Visitor
 {
 	virtual void visit(T &object)  = 0;
+};
+
+/**
+ * Templated singled that returns T
+ */
+template<typename T>
+class Singleton
+{
+private:
+	Singleton() {};
+public:
+
+	static T& getInstance()
+	{
+		if (!instance)
+		{
+			// allocate singleton, run only once
+			instance = std::shared_ptr<T>(new T());
+		}
+
+		return *instance;
+	}
+
+private:
+	static T *instance;
 };
 
 } /* namespace cgutils */
