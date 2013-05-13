@@ -1,24 +1,19 @@
-#ifndef _IMPORT_H
-#define _IMPORT_H
+#ifndef _RESOURCES_H_
+#define _RESOURCES_H_
 
-#include "cgutils.hpp"
+#include <memory>
+
+#include "scenegraph.h"
+#include "cgutils/cgutils.hpp"
 
 #include <assimp/Importer.hpp> 
 #include <assimp/scene.h>
 #include <assimp/postprocess.h> 
 
-namespace cgutils
-{
+namespace raytracer {
 
-
-class AssetFile
-{
-public:
-	AssetFile();
-	~AssetFile();
-
-	/* data */
-};
+using namespace cgutils;
+using std::unique_ptr;
 
 typedef struct 
 {
@@ -33,14 +28,24 @@ typedef struct
 
 } mesh_data;
 
-class AssetVisitor
+typedef Visitor<mesh_data> MeshDataVisitor;
+
+class AssetReader
 {
-	virtual const void visit(const mesh_data &mesh) = 0;
+public:
+	virtual bool open(const std::string& path) = 0;
+
+	virtual void accept(const MeshDataVisitor &visitor) = 0;
 };
 
-class AssimpAssetImporter
+class ResourceLoaderFactory
 {
+public:
+	static unique_ptr<AssetReader> getReaderForFiletype(const string &filename);
+};
 
+class AssimpAssetImporter : public AssetReader
+{
 public:
 	AssimpAssetImporter();
 
@@ -81,7 +86,7 @@ public:
 	int getMeshAtIndex(int index);
 
 
-	void accept(const AssetVisitor &visitor)
+	void accept(const MeshDataVisitor &visitor)
 ;
 protected:
 	Assimp::Importer importer;
@@ -90,6 +95,16 @@ protected:
 
 };
 
+class MeshDataSceneAdder : public MeshDataVisitor
+{
+public:
+	MeshDataSceneAdder(SceneGraph *s) : scene(s) { };
+	virtual void visit(mesh_data &mesh);
 
-} /* namespace cgutils*/
-#endif /* _IMPORT_H */
+private:
+	SceneGraph *scene;
+};
+
+} /* namespace raytracer */
+
+#endif /* _RESOURCES_H_*/

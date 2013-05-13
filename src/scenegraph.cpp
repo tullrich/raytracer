@@ -8,21 +8,6 @@
 namespace raytracer {
 
 
-SceneGraph::SceneGraph()
-{
-	builder = new SceneBuilder(this);
-}
-
-SceneGraph::~SceneGraph()
-{
-	delete builder;
-}
-
-const SceneBuilder * SceneGraph::getSceneBuilder()
-{
-	return builder;
-}
-
 OctreeSceneGraphImp::OctreeSceneGraphImp()
 {
 
@@ -39,9 +24,5 @@ SceneGraph* SceneGraphFactory::getSceneGraph()
 	return new OctreeSceneGraphImp();
 }
 
-const void SceneBuilder::visit(const mesh_data &mesh)
-{
-    std::cout << " inside visit() " << std::endl;
-}
 
 } /* namespace raytracer */

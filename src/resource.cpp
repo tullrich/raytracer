@@ -1,9 +1,9 @@
-#include <stdexcept>
+#include <iostream>
+#include <regex>
 
-#include "import.h"
+#include "resources.h"
 
-namespace cgutils
-{
+namespace raytracer {
 
 #define CHECK_ASSET_OPEN() \
 	CGUTILS_ASSERT(scene != NULL)
@@ -60,9 +60,27 @@ int AssimpAssetImporter::getMeshAtIndex(int index)
 	aiMesh* mesh = scene->mMeshes[index];
 }
 
-void AssimpAssetImporter::accept(const AssetVisitor &visitor)
+void AssimpAssetImporter::accept(const MeshDataVisitor &visitor)
 {
 	
 }
 
-} /* namespace cgutils */
+unique_ptr<AssetReader> ResourceLoaderFactory::getReaderForFiletype(const string &filename)
+{
+
+	if (std::regex_match (filename, std::regex(".*\.obj") ))
+	{
+		return unique_ptr<AssimpAssetImporter>(new AssimpAssetImporter());
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+void MeshDataSceneAdder::visit(mesh_data &mesh)
+{
+	std::cout << "visiting a mesh" << std::endl;
+}
+
+} /* namespace raytracer */

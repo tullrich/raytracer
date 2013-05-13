@@ -36,7 +36,7 @@ struct CallBackImpl : CallBack
 	void* p;
 	typedef T* obj_ptype;
 
-	CallBackImpl(T& obj)
+	CallBackImpl(T &obj)
 	{
 		p = &obj;
 	};
@@ -58,6 +58,12 @@ struct StaticCallBackImpl : CallBack
 	{
 		(*F)();
 	}
+};
+
+template<typename T>
+class Visitor
+{
+	virtual void visit(T &object)  = 0;
 };
 
 } /* namespace cgutils */

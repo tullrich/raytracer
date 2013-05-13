@@ -1,11 +1,12 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <memory>
 #include <boost/program_options.hpp>
-#include <boost/scoped_ptr.hpp>
 
 #include "raytracer.h"
 #include "scenegraph.h"
+#include "resources.h"
 #include "cgutils/cgutils.hpp"
     
 using namespace cgutils;
@@ -186,20 +187,26 @@ static Raytracer* buildRayTracer(const po::variables_map &vm)
     return builder.buildRaytracer();
 }
 
-static void addToScene(const SceneBuilder &sb, string &path)
+static void addToScene(const MeshDataSceneAdder &sb, string &path)
 {
-
-    AssimpAssetImporter file;
+    unique_ptr<AssetReader> reader = ResourceLoaderFactory::getReaderForFiletype(path);
     
-    if(file.open(path))
+    if(reader)
     {
-        file.accept(sb);
+        if(reader->open(path))
+        {  
+            // add everything into the Scenegraph
+            reader->accept(sb);
+        }
+        else
+        {
+            cout << "Warning: error opening asset file '" << path << "'" << endl;
+        }
     }
     else
     {
-        cout << "Warning: could not open asset file '" << path << "'" <\< endl;
+        cout << "Warning: unsupported file type '" << path << "'" << endl;
     }
-
 } 
 
 /**
@@ -210,19 +217,18 @@ static void addToScene(const SceneBuilder &sb, string &path)
 static SceneGraph* buildScene(const po::variables_map &vm)
 {
     SceneGraph *scene;
-    const SceneBuilder *builder;
     vector<string> assetpaths;
 
     CGUTILS_ASSERT(vm.count(OPTION_ASSETPATH)); // bomb if we somehow got here without assets
 
-    scene = SceneGraphFactory::getSceneGraph();
-    builder = scene->getSceneBuilder();
     assetpaths = vm[OPTION_ASSETPATH].as< vector<string> >();
+    scene = SceneGraphFactory::getSceneGraph();
+    MeshDataSceneAdder builder(scene);
 
     for (string filename : assetpaths)
     {
-        cout << "\t Processing assetfile: " << filename << endl;
-        addToScene(*builder, filename);
+        cout << "Processing assetfile: " << filename << endl;
+        addToScene(builder, filename);
     }
 
     return scene;
