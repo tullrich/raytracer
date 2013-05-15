@@ -7,30 +7,52 @@
 #include "raytracer.h"
 #include "scenegraph.h"
 #include "resources.h"
+#include "camera.h"
 #include "cgutils/cgutils.hpp"
     
 using namespace cgutils;
 
 namespace raytracer {
 
-Raytracer::Raytracer(const string &outputfile, int width, int height) : outpath(outputfile)
+Raytracer::Raytracer(const string &outputfile, int width, int height) : img(width, height), outpath(outputfile)
 {
     scene = NULL;
+}
 
-    initImage();
-    img   = allocateImage(width, height);
+Raytracer::~Raytracer()
+{
 }
 
 
 void Raytracer::trace()
 {
     CGUTILS_ASSERT(scene);
+    CGUTILS_ASSERT(camera);
 
-    if (!saveImage(img, outpath.c_str()))
+    RGB color(.5, 0, 0);
+    glm::vec4 intersection;
+    Triangle tri;
+
+    float half_width = .2 * img.width / 2;
+    float half_height = .2 * img.height / 2;
+
+    for (int i = 0; i < img.width; ++i)
+    {
+        for (int j = 0; j < img.height; ++j)
+        {
+            Ray r(glm::vec3((i * .2) - half_width, (j * .2) - half_height,  7), glm::vec3((i * .2) - half_width, (j * .2) - half_height,  6));
+
+            if(scene->traceRay(r, intersection, tri))
+            {
+                img.setPixelColor(i, j ,color);
+            }
+        }
+    }
+
+    if (!img.writeOut(outpath))
     {
         std::cout << "Error: FreeImage_Save()" << std::endl;
     }
-    std::cout << "Saved" << std::endl;
 }
 
 
@@ -40,11 +62,27 @@ Raytracer* RaytraceBuilder::buildRaytracer()
     return new Raytracer(outputfile, width, height);
 }
 
+std::ostream& operator<<(std::ostream& o, const glm::vec3& b)
+{
+    return  o << "<" << b.x << ", " << b.y << ", " << b.z << ">";
+}
+
+std::ostream& operator<<(std::ostream& o, const Triangle& b)
+{
+    return  o << "Triangle {" << b.A << ", " << b.B << ", " << b.C << " }";
+}
+
+glm::vec3 Triangle::intersectionToPoint(glm::vec4 &intersection)
+{
+    return intersection.x * A + intersection.y * B + intersection.z * C;
+}
+
 } /* namespace raytracer */
 
 namespace po = boost::program_options;
 using namespace raytracer;
 using namespace std;
+
 
 
 /**
@@ -187,7 +225,12 @@ static Raytracer* buildRayTracer(const po::variables_map &vm)
     return builder.buildRaytracer();
 }
 
-static void addToScene(const MeshDataSceneAdder &sb, string &path)
+/**
+ * Add everything in path to the scene as entities, performing all loading
+ * @param sb   sceneinjector for the scene we are adding too
+ * @param path filename to load
+ */
+static void addToScene(const SceneGraphInjector &sb, string &path)
 {
     unique_ptr<AssetReader> reader = ResourceLoaderFactory::getReaderForFiletype(path);
     
@@ -200,7 +243,7 @@ static void addToScene(const MeshDataSceneAdder &sb, string &path)
         }
         else
         {
-            cout << "Warning: error opening asset file '" << path << "'" << endl;
+            cout << "Warning: problem opening asset file '" << path << "'" << endl;
         }
     }
     else
@@ -223,12 +266,12 @@ static SceneGraph* buildScene(const po::variables_map &vm)
 
     assetpaths = vm[OPTION_ASSETPATH].as< vector<string> >();
     scene = SceneGraphFactory::getSceneGraph();
-    MeshDataSceneAdder builder(scene);
+    SceneGraphInjector injector(scene);
 
     for (string filename : assetpaths)
     {
         cout << "Processing assetfile: " << filename << endl;
-        addToScene(builder, filename);
+        addToScene(injector, filename);
     }
 
     return scene;
@@ -237,6 +280,7 @@ static SceneGraph* buildScene(const po::variables_map &vm)
 int main(int argc, char *argv[])
 {
     Raytracer *tracer;
+    SceneGraph *scene;
     po::variables_map vm;
 
     if (!getInput(argc, argv, vm))
@@ -246,9 +290,34 @@ int main(int argc, char *argv[])
     }
 
     tracer = buildRayTracer(vm);
-    tracer->setScene(buildScene(vm));
+    scene = buildScene(vm);
+    tracer->setScene(scene);
+    tracer->setCamera(new Camera(glm::vec3(6, 0, .5), 2.0f));
 
     tracer->trace();
+
+    Triangle tri(glm::vec3(0, 0, 0), glm::vec3(2, 0, 2), glm::vec3(2, 0 , -2));
+    Ray r(glm::vec3(6, 0, .5), glm::vec3(5, 0, .5));
+
+    vec4 intersection;
+    //if (r.intersects(tri, intersection))
+    if(scene->traceRay(r, intersection, tri))
+    {
+        std::cout << "intersects tri" << tri << " at " << tri.intersectionToPoint(intersection) << std::endl;
+    }
+
+    Ray r2(glm::vec3(5.02830, 0, .75), glm::vec3(6.02830, 0, .75));
+
+    //if (r.intersects(tri, intersection))
+    if(scene->traceRay(r2, intersection, tri))
+    {
+        std::cout << "2intersects at " << tri.intersectionToPoint(intersection) << std::endl;
+    }
+
+    
+
+    delete tracer;
+    delete scene;
 
 	return 0;
 }

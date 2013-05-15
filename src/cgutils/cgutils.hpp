@@ -6,6 +6,7 @@
 using typename std::string;
 
 #include <iostream>
+#include <map>
 
 namespace cgutils
 {
@@ -64,32 +65,122 @@ struct StaticCallBackImpl : CallBack
 template<typename T>
 class Visitor
 {
-	virtual void visit(T &object)  = 0;
+public:
+	virtual void visit(T &object) const  = 0;
 };
 
 /**
- * Templated singled that returns T
+ * Templated singleton pattern
+ * Derived classes must friend Singleton<> so that its private
+ * constructor is available in this scope
  */
 template<typename T>
 class Singleton
 {
-private:
+protected:
 	Singleton() {};
+	virtual ~Singleton() {};
+
 public:
 
 	static T& getInstance()
 	{
-		if (!instance)
+		if (!Singleton<T>::instance)
 		{
 			// allocate singleton, run only once
-			instance = std::shared_ptr<T>(new T());
+			Singleton<T>::instance = new T();
 		}
 
-		return *instance;
+		return *(Singleton<T>::instance);
 	}
 
 private:
 	static T *instance;
+
+ 	/** 
+ 	 * Private copy constructor to prevent copy construction
+ 	 */
+	Singleton( Singleton const & ) {};
+
+	/** 
+	 * Private operator to prevent assignment
+	 */
+	Singleton &operator=( Singleton const & ) {};
+};
+
+template< typename T >
+T *Singleton<T>::instance        = NULL;
+
+
+
+template <typename K, typename T>
+class ResourceManager : public Singleton<ResourceManager<K, T>>
+{
+	/**
+	 * Must be a friend class of the singleton base
+	 */
+	friend class Singleton<ResourceManager<K, T>>;
+
+protected:
+	typedef std::map<K, T*> entity_map;
+	ResourceManager() {};
+
+public:
+
+	/**
+	 * Adds a resource of type T into this manager.
+	 * @param key key for inserted element
+	 * @param r resource instance to be added
+	 */
+	void add(const K &key, T &r)
+	{
+		if (resources.find(key) != resources.end())
+		{
+			//std::cout << "Warning: trying to add duplicate key " << key << std::endl;
+			return;
+		}
+
+		//std::cout << " inserting('" << key << "') " << r << std::endl;
+		resources[key] = &r;
+	}
+
+	/**
+	 * get a resource from this manager
+	 * @param  key key for the resource
+	 * @return     ref to the resource
+	 */
+	T* get(const K& key)
+	{
+		if(resources.find(key) != resources.end())
+		{
+			return resources[key];
+		}
+
+		return NULL;
+	}
+
+	/**
+	 * fnv1 hash (http://isthe.com/chongo/tech/comp/fnv/) using recommended 
+	 * seed and prime
+	 * @param  str string to be hashed
+	 * @return     	hashed int
+	 */
+	int calcHash(const std::string &str)
+	{
+		int prime = 0x01000193; //   16777619
+		int hash = 0x811C9DC5; // the seed - 2166136261
+
+		for (char c : str)
+		{
+			hash = (c ^ hash) * prime;
+		}
+
+		return hash;
+	}
+
+private:
+	entity_map resources;
+
 };
 
 } /* namespace cgutils */

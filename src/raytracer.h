@@ -4,6 +4,9 @@
 #include <string>
 #include "rtimage.h"
 #include "scenegraph.h"
+#include "common.h"
+#include "camera.h"
+#include "ray.h"
 
 namespace raytracer {
 
@@ -24,7 +27,7 @@ class Raytracer
 {
 public:
 	Raytracer(const string &outputfile, int height, int width);
-	~Raytracer() {};
+	~Raytracer();
 
 	string& getOutpath() { return outpath; };
 	void setOutpath(const string &newpath) {  outpath = newpath; };
@@ -36,9 +39,10 @@ public:
 
 	/* setters */
 	void setScene(SceneGraph *scene) { this->scene = scene; };
+	void setCamera(Camera *camera) { this->camera = camera; };
 
 private:
-    rtimage *img;
+    Image img;
 
     /**
      * image output pathname
@@ -49,6 +53,11 @@ private:
  	 * Scene info for the raytracer
  	 */
  	SceneGraph *scene;
+
+ 	/**
+ 	 * Camera for the renderer
+ 	 */
+ 	Camera *camera;
 };
 
 
@@ -66,7 +75,7 @@ public:
 	/**
 	 * setup default input values
 	 */
-	RaytraceBuilder() : outputfile(DEFAULT_OUT_PATH), width(DEFAULT_IMG_WIDTH), height(DEFAULT_IMG_HEIGHT) {}
+	RaytraceBuilder() : outputfile(DEFAULT_OUT_PATH), height(DEFAULT_IMG_HEIGHT), width(DEFAULT_IMG_WIDTH) {}
 
 	/**
 	 * allocates a new {@ Raytracer} on the heap configured with specified builder options 

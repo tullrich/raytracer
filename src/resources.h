@@ -4,32 +4,24 @@
 #include <memory>
 #include <map>
 
-#include "scenegraph.h"
 #include "cgutils/cgutils.hpp"
+#include "entity.h"
+#include "mesh.h"
 
 #include <assimp/Importer.hpp> 
 #include <assimp/scene.h>
 #include <assimp/postprocess.h> 
+
+#include "glm/glm.hpp"
 
 namespace raytracer {
 
 using namespace cgutils;
 using std::unique_ptr;
 
-typedef struct 
-{
-	string meshName;
-	
-	int numVertices;
-	int numFaces;
-	int numBones;
-	bool hasNormals;
-	bool hasTangentsAndBitangents;
-	bool hasVertexColors;
+class SceneGraph; //forward declaration
+class Material; //forward declaration
 
-} mesh_data;
-
-typedef Visitor<mesh_data> MeshDataVisitor;
 
 class AssetReader
 {
@@ -40,7 +32,7 @@ public:
 	 * accept a visitor that will call visitor.visit() on every entity in this resource
 	 * @param visitor the visiting entity
 	 */
-	virtual void accept(const MeshDataVisitor &visitor) = 0;
+	virtual void accept(const EntityVisitor &visitor) = 0;
 
 	/**
 	 * Get the last error from the underlying Assimp importer
@@ -59,6 +51,7 @@ class AssimpAssetReader : public AssetReader
 {
 public:
 	AssimpAssetReader();
+	~AssimpAssetReader();
 
 	/**
 	 * Read a file on disk into memory. Memory will be cleaned
@@ -80,7 +73,7 @@ public:
 	 * concrete implementation of AssetReader::accept
 	 * @param visitor the visiting interface
 	 */
-	void accept(const MeshDataVisitor &visitor);
+	void accept(const EntityVisitor &visitor);
 
 
 private:
@@ -105,14 +98,28 @@ private:
 	 */
 	int getMeshAtIndex(int index);
 
+
+	Material* getMaterial(const int mMaterialIndex);
+
+
+	mesh_data::mesh_ptr buildMesh(const aiMesh &node);
+
+	/**
+	 * allocate an entity for the object contained at this node. Connecting any meshes and materials
+	 * that it references
+	 * @param  node the Assimp node containing the object data
+	 * @return      fully constructed {@link Entity}
+	 */
+	std::shared_ptr<Entity> buildEntity(const aiNode &node, aiMatrix4x4 parentToWorldSpace);
+
 	/**
 	 * recursive assimp aiNode visitor. Allocates and adds any resources at node and 
 	 * calls visitNode_r on all child nodes.
 	 * @param node    current assimp aiNode to post
 	 * @param visitor visiting interface
 	 */
-	void visitNode_r(const aiNode *node, const MeshDataVisitor &visitor);
-;
+	void visitNode_r(const aiNode *node, aiMatrix4x4 worldSpace, const EntityVisitor &visitor);
+
 protected:
 	Assimp::Importer importer;
 	const aiScene* scene;
@@ -121,69 +128,7 @@ protected:
 
 };
 
-class MeshDataSceneAdder : public MeshDataVisitor
-{
-public:
-	MeshDataSceneAdder(SceneGraph *s) : scene(s) { };
-	virtual void visit(mesh_data &mesh);
 
-private:
-	SceneGraph *scene;
-};
-
-
-template <typename T>
-class ResourceManager : public Singleton<ResourceManager<T>>
-{
-private:
-	typedef std::map<int, std::shared_ptr<T>> entity_map;
-
-public:
-
-	/**
-	 * Adds a resource of type T into this manager.
-	 * @param r resource instance to be added
-	 */
-	void addResource(std::string &key, T &r)
-	{
-		int hash = 0;
-
-		hash = calcHash(key);
-		if (resources.find(hash) == entity_map::end)
-		{
-			std::cout << "Warning: trying to add duplicate mesh " << r << std::endl;
-			return;
-		}
-
-		std::cout << " hash('" << key << "') = " << hash << std::endl;
-		resources[hash] = r;
-	}
-
-	/**
-	 * fnv1 hash (http://isthe.com/chongo/tech/comp/fnv/) using recommended 
-	 * seed and prime
-	 * @param  str [description]
-	 * @return     [description]
-	 */
-	int calcHash(const std::string &str)
-	{
-		int prime = 0x01000193; //   16777619
-		int hash = 0x811C9DC5; // the seed - 2166136261
-
-		for (char c : str)
-		{
-			hash = (c ^ hash) * prime;
-		}
-
-		return hash;
-	}
-
-private:
-	entity_map resources;
-
-};
-
-class  MeshManager : ResourceManager<mesh_data> {};
 
 } /* namespace raytracer */
 
