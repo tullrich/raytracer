@@ -98,12 +98,44 @@ Light::light_ptr AssimpAssetReader::buildLight(aiLight &ai_light)
 	Light::light_ptr light;//(new Light());
 	std::cout << "light type " << ai_light.mType << std::endl;
 
+	std::string name = ai_light.mName.C_Str();
+
+
 	switch(ai_light.mType)
 	{
-		case aiLightSource_DIRECTIONAL : light =  Light::light_ptr(new DirectionalLight); break;
-		case aiLightSource_POINT : light =  Light::light_ptr(new PointLight); break;
-		case aiLightSource_SPOT : light =  Light::light_ptr(new SpotLight); break;
+		case aiLightSource_DIRECTIONAL : 
+		{
+			light =  Light::light_ptr(new DirectionalLight(name)); 
+			break;
+		}
+		case aiLightSource_POINT : 
+		{
+			light =  Light::light_ptr(new PointLight(name)); 
+			break;
+		}
+		case aiLightSource_SPOT : 
+		{
+			light =  Light::light_ptr(new SpotLight(name, ai_light.mAngleInnerCone, ai_light.mAngleOuterCone)); 
+			break;
+		}
 		default: light =  Light::light_ptr(NULL);
+	}
+
+	if (light)
+	{
+
+		// get colors as RGB
+		RGB diffuse(ai_light.mColorDiffuse.r, ai_light.mColorDiffuse.g, ai_light.mColorDiffuse.b);
+		RGB ambient(ai_light.mColorAmbient.r, ai_light.mColorAmbient.g, ai_light.mColorAmbient.b);
+		RGB specular(ai_light.mColorSpecular.r, ai_light.mColorSpecular.g, ai_light.mColorSpecular.b);
+
+		// get location as vec3
+		glm::vec3 position(ai_light.mPosition.x, ai_light.mPosition.y, ai_light.mPosition.z);
+		glm::vec3 direction(ai_light.mDirection.x, ai_light.mDirection.y, ai_light.mDirection.z);
+
+		light->setColor(ambient, diffuse, specular);
+		light->setLocation(position, direction);
+		light->setAttenuation(ai_light.mAttenuationConstant, ai_light.mAttenuationLinear, ai_light.mAttenuationQuadratic);
 	}
 
 	return light;

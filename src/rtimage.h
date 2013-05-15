@@ -6,9 +6,6 @@
 
 namespace raytracer {
 
-
-typedef glm::vec3 RGB;
-
 /**
  * Maintains the 2D array of RGB values and handles image
  * writing after raytracing

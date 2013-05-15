@@ -15,6 +15,9 @@ namespace raytracer {
 #define DEFAULT_IMG_HEIGHT 100	// default output image height value
 #define DEFAULT_OUT_PATH "traceimage.png"	// default output image filepath
 
+
+typedef glm::vec3 RGB;
+
 class Triangle 
 {
 public:
