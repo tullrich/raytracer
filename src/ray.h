@@ -8,6 +8,8 @@ namespace raytracer {
 using namespace glm;
 
 class Material; // forward declaration
+class Entity; // forward declaration
+class mesh_data; // forward declaration
 
 /**
  * class containing the result of a success full ray cast
@@ -16,8 +18,8 @@ typedef struct
 {
 	glm::vec4 intersection; // barycentric coordinates representing the
 	Triangle tri; // triangle of impact
-	//Entity::entity_ptr entity; // ptr to the entity of intersection
-	//mesh_data::mesh_ptr mesh; // ptr to the mesh of intersection
+	std::shared_ptr<Entity> entity; // ptr to the entity of intersection
+	std::shared_ptr<mesh_data>  mesh; // ptr to the mesh of intersection
 	const Material *mat; // material of the impacting triangle
 } TraceResult;
 

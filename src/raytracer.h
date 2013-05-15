@@ -14,13 +14,6 @@ namespace raytracer {
 using std::string;
 using namespace raytracer::image;
 
-#define CONFIG_FILEPATH "raytracer.cfg" // input configuration filepath
-
-#define OPTION_WIDTH "w"
-#define OPTION_HEIGHT "h"
-#define OPTION_OUTPATH "output-filepath"
-#define OPTION_ASSETPATH "asset-filepath"
-
 /**
  * raytracer root
  */

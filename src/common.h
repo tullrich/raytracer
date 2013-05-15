@@ -16,6 +16,13 @@ namespace raytracer {
 #define DEFAULT_OUT_PATH "traceimage.png"	// default output image filepath
 
 
+#define CONFIG_FILEPATH "raytracer.cfg" // input configuration filepath
+
+#define OPTION_WIDTH "w"
+#define OPTION_HEIGHT "h"
+#define OPTION_OUTPATH "output-filepath"
+#define OPTION_ASSETPATH "asset-filepath"
+
 typedef glm::vec3 RGB;
 
 class Triangle 

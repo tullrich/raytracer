@@ -1,5 +1,6 @@
 #include "raytracer.h"
-    
+#include <math.h>
+
 using namespace cgutils;
 
 namespace raytracer {
@@ -29,28 +30,36 @@ void Raytracer::computeLightAt(const glm::vec3 point, RGB &color)
     }
 }
 
-void Raytracer::rayForPixel(int i, int j, Ray &r) const
+void Raytracer::rayForPixel(int u, int v, Ray &r) const
 {
     glm::vec3 point, point2;
 
-    float x_inc = camera->FOV / img.width;
-    float y_inc = camera->FOV / img.height;
+    //float x_inc = tan(camera->FOV) * ((2 * u) - img.width) / img.width;
+    //float x_inc = 2 * (camera->nearPlane * tan(camera->FOV)) / img.width;
+    //float y_inc = tan(camera->FOV) * ((2 * v) - img.height) / img.height;
+    //std::cout << "plane width " << tan(M_PI / 2 / 2) * camera->nearPlane * 2 << std::endl;
+    float x_inc = tan(camera->FOV / 2) * camera->nearPlane * 2 / img.width;
+    //std::cout << "unit plane width " << x_inc << std::endl;
+    float y_inc = tan(camera->FOVy / 2) * camera->nearPlane * 2 / img.height;
 
     // 0.5*(2y+1-H)*Yinc
 
-    glm::vec3 image_center = camera->position;// + glm::vec1(1);// + (camera->nearPlane * camera->direction);
+    glm::vec3 image_center(0);// = camera->position;// + glm::vec1(1);// + (camera->nearPlane * camera->direction);
 
 
     //std::cout << side << std::endl;
-    glm::vec4 temp(0, 0.5 * (2 *j + 1 - img.height) * y_inc, 0.5 * (2 *i + 1 - img.width) * x_inc, 1);
+    ///0.5 * (2 * i - img.width) * x_inc
+    ///0.5 * (2 * j - img.width) * y_inc
+    glm::vec4 temp(u * x_inc - (img.width * x_inc / 2), camera->nearPlane, v * y_inc - (img.height * y_inc / 2), 1);
 
     //float sum = (0.5 * (2 *j + 1 - img.height))  + (0.5 * (2 *i + 1 - img.width) * x_inc);
     //glm::vec3 dir = vec3(camera->direction.x + sum, camera->direction.y + sum, camera->direction.z + sum);
     //glm::vec3 dir = vec3(camera->direction.x + sum, camera->direction.y + sum, camera->direction.z + sum);
-    image_center += vec3(camera->transform * temp);
+    //image_center = vec3(camera->transform * temp);
     //image_center += 
-
-    r = Ray(camera->position, image_center);
+    //std::cout << glm::vec3(temp) << std::endl;
+    vec3 final = camera->position + glm::normalize(glm::vec3(temp));
+    r = Ray(camera->position, final);
 }
 
 
@@ -61,24 +70,27 @@ void Raytracer::trace()
 
     TraceResult result;
 
-    for (int i = 0; i < img.width; ++i)
+    for (int u = 0; u < img.width; ++u)
     {
-        for (int j = 0; j < img.height; ++j)
+        for (int v = 0; v < img.height; ++v)
         {
             //std::cout << " handling pixel " << i << " x " << j << std::endl;
-            RGB color;
+            RGB color(0);
             Ray r;
-            rayForPixel(i, j, r);
+            rayForPixel(u, v, r);
 
             if(scene->traceRay(r, result))
             {
+                //std::cout << " got a hit on mesh " << *result.mesh << std::endl;
 
                 computeLightAt(result.tri.intersectionToPoint(result.intersection), color);
 
-                img.setPixelColor(i, j , color);
+                img.setPixelColor(u, v , color);
             }
         }
     }
+
+   std::cout << "num meshes " << MeshManager::getInstance().size() << std::endl;
 
     if (!img.writeOut(outpath))
     {

@@ -36,6 +36,9 @@ OctreeSceneGraphImp::OctreeSceneGraphImp()
 void OctreeSceneGraphImp::addEntity(Entity::entity_ptr entity)
 {
 	entities.push_back(entity);
+
+	std::cout << "scene size now " << entities.size() << std::endl;
+	std::cout << "\t adding " << *entity << std::endl;
 }
 
 
@@ -57,6 +60,7 @@ bool OctreeSceneGraphImp::traceRay(Ray &r, TraceResult &result) const
 			if(temp_t == -1 || temp_result.intersection.w < result.intersection.w)
 			{
 				result = temp_result;
+				result.entity = entity;
 				temp_t = result.intersection.w;
 			}
 		}

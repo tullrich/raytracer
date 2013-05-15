@@ -178,6 +178,11 @@ public:
 		return hash;
 	}
 
+	int size() const
+	{
+		return resources.size();
+	}
+
 private:
 	entity_map resources;
 

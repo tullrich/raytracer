@@ -9,7 +9,7 @@ Image::Image(int width, int height)
 {
 	this->width  = width;
 	this->height = height;
-	pixels       = new RGB[width*height];
+	pixels       = new RGB[width*height]();
 }
 
 Image::~Image()
@@ -20,7 +20,7 @@ Image::~Image()
 RGB* Image::getRGBForPixel(int u, int v)
 {
 	if(u < width && u >= 0 && v < height && v >= 0 )
-		return &pixels[v*height + u];
+		return &(pixels[v*height + u]);
 
 	return NULL;
 }
@@ -31,9 +31,15 @@ void Image::setPixelColor(int u, int v, const RGB &color)
 
 	if(pixel)
 	{
+
 		pixel->r = color.r;
 		pixel->g = color.g;
 		pixel->b = color.b;
+		//std::cout << *pixel << std::endl;
+	}
+	else
+	{
+		std::cout << "Warning: bad (u,v) in Image::setPixelColor()" << std::cout;
 	}
 }
 
@@ -48,13 +54,13 @@ bool Image::writeOut(const std::string &filename) const
 		for(int u = 0; u < width; u++)
 		{
 			RGBQUAD value;
-			value.rgbRed = fmax(fmin(255 * pixels[v*height + u].r, 255), 0);
-			value.rgbGreen = fmax(fmin(255 * pixels[v*height + u].g, 255), 0);
-			value.rgbBlue = fmax(fmin(255 * pixels[v*height + u].b, 255), 0);
+			value.rgbRed = 255 * pixels[v*height + u].r;
+			value.rgbGreen = 255 * pixels[v*height + u].g;
+			value.rgbBlue = 255 * pixels[v*height + u].b;
 			value.rgbReserved = 255; // always full alpha
 			if (!FreeImage_SetPixelColor(img, u, v, &value))
 			{
-				//std::cout << "Freeimage SetPixelColor() failed" << std::endl;
+				std::cout << "Freeimage SetPixelColor() failed" << std::endl;
 			}
 		}
 	}

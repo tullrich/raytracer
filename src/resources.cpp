@@ -127,11 +127,22 @@ Light::light_ptr AssimpAssetReader::buildLight(aiLight &ai_light)
 		// get colors as RGB
 		RGB diffuse(ai_light.mColorDiffuse.r, ai_light.mColorDiffuse.g, ai_light.mColorDiffuse.b);
 		RGB ambient(ai_light.mColorAmbient.r, ai_light.mColorAmbient.g, ai_light.mColorAmbient.b);
-		RGB specular(ai_light.mColorSpecular.r, ai_light.mColorSpecular.g, ai_light.mColorSpecular.b);
+		RGB specular(ai_light.mColorSpecular.r, ai_light.mColorSpecular.g, ai_light.mColorSpecular.b)
+;
+		aiNode *n = scene->mRootNode->FindNode(ai_light.mName);
+		aiMatrix4x4 childToWorld; // identity
+
+		if (n != NULL)
+		{
+			computeTransformForNode(n, childToWorld);
+		}
+
+		aiVector3D worldPosition = childToWorld * ai_light.mPosition;
+		aiVector3D worldDirection = childToWorld * ai_light.mDirection;
 
 		// get location as vec3
-		glm::vec3 position(ai_light.mPosition.x, ai_light.mPosition.y, ai_light.mPosition.z);
-		glm::vec3 direction(ai_light.mDirection.x, ai_light.mDirection.y, ai_light.mDirection.z);
+		glm::vec3 position(worldPosition.x, worldPosition.y, worldPosition.z);
+		glm::vec3 direction(worldDirection.x, worldDirection.y, worldDirection.z);
 
 		std::cout << " light position " << position << std::endl;
 
@@ -304,8 +315,11 @@ void AssimpAssetReader::visitNode_r(const aiNode *node, aiMatrix4x4 parentToWorl
 	std::cout << worldSpace.c1 << " " << worldSpace.c2 << " " << worldSpace.c3 << std::endl;
 	std::cout << worldSpace.d1 << " " << worldSpace.d2 << " " << worldSpace.d3 << std::endl;*/
 
-	ent = buildEntity(*node, worldSpace);
-	visitor.visit(ent);
+	if(node->mNumMeshes > 0)
+	{
+		ent = buildEntity(*node, worldSpace);
+		visitor.visit(ent);
+	}
 
 	// visit each child node of cur_node
 	for (int i = 0; i < node->mNumChildren; i++)
@@ -347,7 +361,7 @@ Camera* AssimpAssetReader::getCamera() const
 		glm::vec3 direction(worldDirection.x, worldDirection.y, worldDirection.z);
 		glm::vec3 up(worldUp.x, worldUp.y, worldUp.z);
 
-		return new Camera(position, direction, up, ai_cam->mClipPlaneNear, ai_cam->mClipPlaneFar, ai_cam->mHorizontalFOV, ai_cam->mAspect);
+		return new Camera(position, direction, up, ai_cam->mClipPlaneNear, ai_cam->mClipPlaneFar,  ai_cam->mHorizontalFOV, ai_cam->mAspect);
 	}
 
 	return NULL;
