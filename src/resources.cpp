@@ -79,6 +79,7 @@ void AssimpAssetReader::accept(const EntityVisitor &visitor)
 	aiMatrix4x4 identity;
 
 	std::cout << "num cams " << scene->mNumCameras << std::endl;
+	std::cout << "num lights " << scene->mNumLights << std::endl;
 	
 	root = scene->mRootNode;
 	if(root)
@@ -92,6 +93,38 @@ void AssimpAssetReader::accept(const EntityVisitor &visitor)
 
 }
 
+Light::light_ptr AssimpAssetReader::buildLight(aiLight &ai_light)
+{
+	Light::light_ptr light;//(new Light());
+	std::cout << "light type " << ai_light.mType << std::endl;
+
+	switch(ai_light.mType)
+	{
+		case aiLightSource_DIRECTIONAL : light =  Light::light_ptr(new DirectionalLight); break;
+		case aiLightSource_POINT : light =  Light::light_ptr(new PointLight); break;
+		case aiLightSource_SPOT : light =  Light::light_ptr(new SpotLight); break;
+		default: light =  Light::light_ptr(NULL);
+	}
+
+	return light;
+}
+
+void AssimpAssetReader::accept(const LightVisitor &visitor)
+{
+	ASSERT_ASSET_OPEN()
+
+	for (int i = 0; i < scene->mNumLights; ++i)
+	{
+		aiLight *ai_light = scene->mLights[i];
+		Light::light_ptr light = buildLight(*ai_light);
+
+		if (light != NULL)
+		{
+			visitor.visit(light);
+		}
+
+	}
+}
 
 glm::vec3* vertBufferForAiVector3D(int mNumVertices, aiVector3D *verts)
 {
@@ -256,6 +289,10 @@ unique_ptr<AssetReader> ResourceLoaderFactory::getReaderForFiletype(const string
 		return unique_ptr<AssimpAssetReader>(new AssimpAssetReader());
 	}
 	else if (std::regex_match (filename, std::regex(".*\\.3ds") ))
+	{
+		return unique_ptr<AssimpAssetReader>(new AssimpAssetReader());
+	}
+	else if (std::regex_match (filename, std::regex(".*\\.dae") ))
 	{
 		return unique_ptr<AssimpAssetReader>(new AssimpAssetReader());
 	}

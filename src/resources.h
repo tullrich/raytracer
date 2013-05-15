@@ -7,6 +7,7 @@
 #include "cgutils/cgutils.hpp"
 #include "entity.h"
 #include "mesh.h"
+#include "light.h"
 
 #include <assimp/Importer.hpp> 
 #include <assimp/scene.h>
@@ -33,6 +34,12 @@ public:
 	 * @param visitor the visiting entity
 	 */
 	virtual void accept(const EntityVisitor &visitor) = 0;
+
+	/**
+	 * accept a visitor that will call visitor.visit() on every light in this resource
+	 * @param visitor the visiting entity
+	 */
+	virtual void accept(const LightVisitor &visitor) = 0;
 
 	/**
 	 * Get the last error from the underlying Assimp importer
@@ -68,12 +75,17 @@ public:
 	 */
 	virtual const char* error() const;
 
-
 	/**
 	 * concrete implementation of AssetReader::accept
 	 * @param visitor the visiting interface
 	 */
 	void accept(const EntityVisitor &visitor);
+
+	/**
+	 * concrete implementation of AssetReader::accept
+	 * @param visitor the visiting interface
+	 */
+	void accept(const LightVisitor &visitor);
 
 
 private:
@@ -111,6 +123,13 @@ private:
 	 * @return      fully constructed {@link Entity}
 	 */
 	std::shared_ptr<Entity> buildEntity(const aiNode &node, aiMatrix4x4 parentToWorldSpace);
+
+	/**
+	 * allocate a light for the aiLight contained in this file
+	 * @param  ai_light the ai_light to gather the parameters from	
+	 * @return      fully constructed {@link Light}
+	 */
+	Light::light_ptr buildLight(aiLight &ai_light);
 
 	/**
 	 * recursive assimp aiNode visitor. Allocates and adds any resources at node and 

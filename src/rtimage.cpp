@@ -1,4 +1,7 @@
 #include "rtimage.h"
+#include <math.h>
+
+using namespace std;
 
 namespace raytracer {
 
@@ -45,11 +48,11 @@ bool Image::writeOut(const std::string &filename) const
 		for(int u = 0; u < width; u++)
 		{
 			RGBQUAD value;
-			value.rgbRed = 255 * pixels[v*height + u].r;
-			value.rgbGreen = 255 * pixels[v*height + u].g;
-			value.rgbBlue = 255 * pixels[v*height + u].b;
+			value.rgbRed = fmax(fmin(255 * pixels[v*height + u].r, 255), 0);
+			value.rgbGreen = fmax(fmin(255 * pixels[v*height + u].g, 255), 0);
+			value.rgbBlue = fmax(fmin(255 * pixels[v*height + u].b, 255), 0);
 			value.rgbReserved = 255; // always full alpha
-			if (!FreeImage_SetPixelColor(img, v, u, &value))
+			if (!FreeImage_SetPixelColor(img, u, v, &value))
 			{
 				//std::cout << "Freeimage SetPixelColor() failed" << std::endl;
 			}

@@ -60,12 +60,6 @@ private:
  	Camera *camera;
 };
 
-
-/* Default input values */
-#define DEFAULT_IMG_WIDTH 100	// default output image height value
-#define DEFAULT_IMG_HEIGHT 100	// default output image height value
-#define DEFAULT_OUT_PATH "traceimage.png"	// default output image filepath
-
 /**
  * {@ Raytrace} builder class with config functions and default values
  */

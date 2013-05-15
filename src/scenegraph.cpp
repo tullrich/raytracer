@@ -19,6 +19,12 @@ void OctreeSceneGraphImp::addEntity(Entity::entity_ptr entity)
 }
 
 
+void OctreeSceneGraphImp::addLight(Light::light_ptr light)
+{
+	lights.push_back(light);
+}
+
+
 bool OctreeSceneGraphImp::traceRay(Ray &r, glm::vec4 &intersection, Triangle &tri) const
 {
 	glm::vec4 temp_intersection;
@@ -53,6 +59,13 @@ void SceneGraphInjector::visit(Entity::entity_ptr &entity) const
 	CGUTILS_ASSERT(scene != NULL)
 
 	scene->addEntity(entity);
+}
+
+void SceneGraphInjector::visit(Light::light_ptr &light) const
+{
+	CGUTILS_ASSERT(scene != NULL)
+
+	scene->addLight(light);
 }
 
 
