@@ -25,22 +25,19 @@ void Entity::addMeshComponent(mesh_data::mesh_ptr mesh)
 }
 
 
-bool Entity::closestIntersection(const Ray &r, glm::vec4 &intersection, Triangle &tri) const
+bool Entity::closestIntersection(const Ray &r, TraceResult &result) const
 {
-
-	glm::vec4 temp_intersection;
+	TraceResult temp_result;
 	float temp_t= -1;
-	Triangle temp_tri;
 
 	for (mesh_data::mesh_ptr mesh : meshes)
 	{
-		if (mesh->closestIntersection(r, temp_intersection, temp_tri))
+		if (mesh->closestIntersection(r, temp_result))
 		{
-			if(temp_t == -1 || temp_intersection.w < intersection.w)
+			if(temp_t == -1 || temp_result.intersection.w < result.intersection.w)
 			{
-				intersection = temp_intersection;
-				tri = temp_tri;
-				temp_t = intersection.w;
+				result = temp_result;
+				temp_t = result.intersection.w;
 			}
 		}
 	}

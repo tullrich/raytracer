@@ -5,6 +5,7 @@
 #include "rtimage.h"
 #include "scenegraph.h"
 #include "common.h"
+#include "material.h"
 #include "camera.h"
 #include "ray.h"
 
@@ -42,6 +43,10 @@ public:
 	void setCamera(Camera *camera) { this->camera = camera; };
 
 private:
+	void rayForPixel(int i, int j, Ray &r) const;
+
+	void computeLightAt(const glm::vec3 point, RGB &color);
+
     Image img;
 
     /**

@@ -36,24 +36,24 @@ void mesh_data::setFaces(int count, const prim_tri *ptr)
 }
 
 
-bool mesh_data::closestIntersection(const Ray &r, glm::vec4 &intersection, Triangle &tri) const
+bool mesh_data::closestIntersection(const Ray &r, TraceResult &result) const
 {
-	glm::vec4 temp_intersection;
+	TraceResult temp_result;
+	temp_result.mat = mat;
 	float t = -1;
 
 	for (int i = 0; i < numFaces; ++i)
 	{
 		const prim_tri *indices = &faces[i];
 		//std::cout << "x " << indices->x << " y " << indices->y << " z " << indices->z << std::endl;
-		Triangle temp_tri(verts[indices->x], verts[indices->y], verts[indices->z]);
+		temp_result.tri = Triangle(verts[indices->x], verts[indices->y], verts[indices->z]);
 		//std::cout << temp_tri << std::endl;
-		if (r.intersects(temp_tri, temp_intersection))
+		if (r.intersects(temp_result.tri, temp_result.intersection))
 		{
-			if (temp_intersection.w < intersection.w || t == -1)
+			if (temp_result.intersection.w < result.intersection.w || t == -1)
 			{
-				intersection = temp_intersection;
-				tri = temp_tri;
-				t = intersection.w;
+				result = temp_result;
+				t = result.intersection.w;
 			}
 		}
 	}

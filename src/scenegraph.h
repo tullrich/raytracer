@@ -8,6 +8,9 @@
 
 namespace raytracer {
 
+
+typedef std::list<Light::light_ptr> LightList;
+
 /**
  * Holds scene information and facilitates quick ray 
  */
@@ -19,7 +22,12 @@ public:
 	virtual ~SceneGraph() {};
 	virtual void addEntity(Entity::entity_ptr entity) = 0;
 	virtual void addLight(Light::light_ptr light) = 0;
-	virtual bool traceRay(Ray &r, glm::vec4 &intersection, Triangle &tri) const = 0;
+	virtual bool traceRay(Ray &r, TraceResult &result) const = 0;
+
+	bool testVisibility(const glm::vec3 &point1, const glm::vec3 &point2, float &distance) const;
+
+	
+	LightList lights;
 };
 
 /**
@@ -31,12 +39,11 @@ public:
 	OctreeSceneGraphImp();
 	virtual ~OctreeSceneGraphImp() {};
 
-	virtual bool traceRay(Ray &r, glm::vec4 &intersection, Triangle &tri) const;
+	virtual bool traceRay(Ray &r, TraceResult &result) const;
 	virtual void addLight(Light::light_ptr light);
 	virtual void addEntity(Entity::entity_ptr entity);
 private:
 	std::list<Entity::entity_ptr> entities;
-	std::list<Light::light_ptr> lights;
 };
 
 /**

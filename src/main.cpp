@@ -160,7 +160,7 @@ static Raytracer* buildRayTracer(const po::variables_map &vm)
  * @param sb   sceneinjector for the scene we are adding too
  * @param path filename to load
  */
-static void addToScene(const SceneGraphInjector &sb, string &path)
+static void addToScene(const SceneGraphInjector &sb, string &path, Camera* &cam)
 {
     unique_ptr<AssetReader> reader = ResourceLoaderFactory::getReaderForFiletype(path);
     
@@ -171,6 +171,11 @@ static void addToScene(const SceneGraphInjector &sb, string &path)
             // add everything into the Scenegraph
             reader->accept((EntityVisitor&)sb);
             reader->accept((LightVisitor&)sb);
+
+            if(cam == NULL)
+            {
+                cam = reader->getCamera();
+            }
         }
         else
         {
@@ -188,7 +193,7 @@ static void addToScene(const SceneGraphInjector &sb, string &path)
  * @param vm [description]
  * @return fully configured {@link SceneGraph}
  */
-static SceneGraph* buildScene(const po::variables_map &vm)
+static SceneGraph* buildScene(const po::variables_map &vm, Camera* &cam)
 {
     SceneGraph *scene;
     vector<string> assetpaths;
@@ -202,7 +207,7 @@ static SceneGraph* buildScene(const po::variables_map &vm)
     for (string filename : assetpaths)
     {
         cout << "Processing assetfile: " << filename << endl;
-        addToScene(injector, filename);
+        addToScene(injector, filename, cam);
     }
 
     return scene;
@@ -212,6 +217,7 @@ int main(int argc, char *argv[])
 {
     Raytracer *tracer;
     SceneGraph *scene;
+    Camera *cam = NULL;
     po::variables_map vm;
 
     if (!getInput(argc, argv, vm))
@@ -221,9 +227,17 @@ int main(int argc, char *argv[])
     }
 
     tracer = buildRayTracer(vm);
-    scene = buildScene(vm);
+    scene = buildScene(vm, cam);
     tracer->setScene(scene);
-    tracer->setCamera(new Camera(glm::vec3(-5, 0, 0), 1.0f));
+
+    if (cam == NULL)
+    {
+        cout << "in here" << endl;
+        new Camera(glm::vec3(-5, 0, 0), 1.0f);
+    }
+
+    std::cout << *cam << std::endl;
+    tracer->setCamera(cam);
 
     tracer->trace();
 /*

@@ -8,6 +8,26 @@
 namespace raytracer {
 
 
+
+bool SceneGraph::testVisibility(const glm::vec3 &point1, const glm::vec3 &point2, float &distance) const
+{
+	Ray r(point1, point2);
+	TraceResult result;
+	float d = glm::length(point2 - point1);
+
+	if (traceRay(r, result))
+	{
+		vec3 intersect_point = result.tri.intersectionToPoint(result.intersection); 
+		if (glm::length(intersect_point - point1) < glm::length(point2 - point1))
+		{
+			return false;
+		}
+	}
+
+	distance = d;
+	return true;
+}
+
 OctreeSceneGraphImp::OctreeSceneGraphImp()
 {
 
@@ -25,21 +45,19 @@ void OctreeSceneGraphImp::addLight(Light::light_ptr light)
 }
 
 
-bool OctreeSceneGraphImp::traceRay(Ray &r, glm::vec4 &intersection, Triangle &tri) const
+bool OctreeSceneGraphImp::traceRay(Ray &r, TraceResult &result) const
 {
-	glm::vec4 temp_intersection;
+	TraceResult temp_result;
 	float temp_t= -1;
-	Triangle temp_tri;
 
 	for (Entity::entity_ptr entity : entities)
 	{
-		if(entity->closestIntersection(r, temp_intersection, temp_tri))
+		if(entity->closestIntersection(r, temp_result))
 		{
-			if(temp_t == -1 || temp_intersection.w < intersection.w)
+			if(temp_t == -1 || temp_result.intersection.w < result.intersection.w)
 			{
-				intersection = temp_intersection;
-				tri = temp_tri;
-				temp_t = intersection.w;
+				result = temp_result;
+				temp_t = result.intersection.w;
 			}
 		}
 	}

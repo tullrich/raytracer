@@ -133,6 +133,8 @@ Light::light_ptr AssimpAssetReader::buildLight(aiLight &ai_light)
 		glm::vec3 position(ai_light.mPosition.x, ai_light.mPosition.y, ai_light.mPosition.z);
 		glm::vec3 direction(ai_light.mDirection.x, ai_light.mDirection.y, ai_light.mDirection.z);
 
+		std::cout << " light position " << position << std::endl;
+
 		light->setColor(ambient, diffuse, specular);
 		light->setLocation(position, direction);
 		light->setAttenuation(ai_light.mAttenuationConstant, ai_light.mAttenuationLinear, ai_light.mAttenuationQuadratic);
@@ -311,6 +313,44 @@ void AssimpAssetReader::visitNode_r(const aiNode *node, aiMatrix4x4 parentToWorl
 		child = node->mChildren[i];
 		visitNode_r(child, worldSpace, visitor);
 	}
+}
+
+void AssimpAssetReader::computeTransformForNode(aiNode *node, aiMatrix4x4 &childToWorld) const
+{
+	childToWorld = childToWorld * node->mTransformation;
+
+	if (node != scene->mRootNode)
+	{
+		computeTransformForNode(node->mParent, childToWorld);
+	}
+}
+
+Camera* AssimpAssetReader::getCamera() const
+{
+	if(scene->mNumCameras > 0)
+	{
+		aiCamera *ai_cam = scene->mCameras[0];
+
+		aiNode *n = scene->mRootNode->FindNode(ai_cam->mName);
+		aiMatrix4x4 childToWorld; // identity
+
+		if (n != NULL)
+		{
+			computeTransformForNode(n, childToWorld);
+		}
+
+		aiVector3D worldPosition = childToWorld * ai_cam->mPosition;
+		aiVector3D worldDirection = childToWorld * ai_cam->mLookAt;
+		aiVector3D worldUp = childToWorld * ai_cam->mUp;
+
+		glm::vec3 position(worldPosition.x, worldPosition.y, worldPosition.z);
+		glm::vec3 direction(worldDirection.x, worldDirection.y, worldDirection.z);
+		glm::vec3 up(worldUp.x, worldUp.y, worldUp.z);
+
+		return new Camera(position, direction, up, ai_cam->mClipPlaneNear, ai_cam->mClipPlaneFar, ai_cam->mHorizontalFOV, ai_cam->mAspect);
+	}
+
+	return NULL;
 }
 
 unique_ptr<AssetReader> ResourceLoaderFactory::getReaderForFiletype(const string &filename)

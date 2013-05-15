@@ -7,12 +7,27 @@ namespace raytracer {
 
 using namespace glm;
 
+class Material; // forward declaration
+
+/**
+ * class containing the result of a success full ray cast
+ */
+typedef struct
+{
+	glm::vec4 intersection; // barycentric coordinates representing the
+	Triangle tri; // triangle of impact
+	//Entity::entity_ptr entity; // ptr to the entity of intersection
+	//mesh_data::mesh_ptr mesh; // ptr to the mesh of intersection
+	const Material *mat; // material of the impacting triangle
+} TraceResult;
+
 /**
  * Ray r = p + t(q), t >= 0
  */
 class Ray
 {
 public:
+	Ray() : p(0), q(0) {};
 	Ray(glm::vec3 p, glm::vec3 q);
 
 	glm::vec3 p; // ray origin point

@@ -2,10 +2,12 @@
 #define _LIGHT_H_ 
 
 #include "common.h"
-#include "common.h"
 
 namespace raytracer {
 
+/**
+ * base class for Lights that are added to the scene
+ */
 class Light
 {
 public:
@@ -16,19 +18,22 @@ public:
 	void setLocation(const glm::vec3 &position, const glm::vec3 &direction);
 	void setColor(const RGB &ambient, const RGB &diffuse, const RGB &specular);
 	void setAttenuation(float constant, float linear, float quadratic);
-	
+
 	const std::string name;
 
-private:
-	/**
-	 * Lighting coefficents
-	 */
-	RGB ambient, diffuse, specular;
+	virtual void getAttenuatedRadiance(const glm::vec3 &point, float d, RGB &out) const {};
+
 
 	/**
 	 * Location vars
 	 */
 	glm::vec3 position, direction;
+
+protected:
+	/**
+	 * Lighting coefficents
+	 */
+	RGB ambient, diffuse, specular;
 
 	/**
 	 * Attenuation vars
@@ -41,6 +46,8 @@ class PointLight : public Light
 {
 public:
 	PointLight(const std::string &name) : Light(name) {};
+
+	void getAttenuatedRadiance(const glm::vec3 &point, float d, RGB &out) const;
 };
 
 class DirectionalLight : public Light

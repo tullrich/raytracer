@@ -55,7 +55,7 @@ public:
 	 * @param  tri          returned closest intersecting triangle
 	 * @return              true if some prim_tri intersects this mesh
 	 */
-	bool closestIntersection(const Ray &r, glm::vec4 &intersection, Triangle &tri) const;
+	bool closestIntersection(const Ray &r, TraceResult &result) const;
 
 private:
 
@@ -76,6 +76,7 @@ private:
 	 */
 	friend std::ostream& operator<<(std::ostream& o, const mesh_data& b);
 };
+
 /**
  * Insert stream operator for mesh_data
  */

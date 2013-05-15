@@ -7,6 +7,7 @@
 #include "cgutils/cgutils.hpp"
 #include "entity.h"
 #include "mesh.h"
+#include "camera.h"
 #include "light.h"
 
 #include <assimp/Importer.hpp> 
@@ -46,6 +47,13 @@ public:
 	 * @return String containing the error message direct from Assimp
 	 */
 	virtual const char* error() const = 0;
+
+
+	/**
+	 * returns a camera from this file
+	 * @return freshly allocated or NULL if this file contains no cameras
+	 */
+	virtual Camera* getCamera() const = 0;
 };
 
 class ResourceLoaderFactory
@@ -86,6 +94,12 @@ public:
 	 * @param visitor the visiting interface
 	 */
 	void accept(const LightVisitor &visitor);
+
+	/**
+	 * returns a camera from this file
+	 * @return freshly allocated or NULL if this file contains no cameras
+	 */
+	Camera* getCamera() const;
 
 
 private:
@@ -138,6 +152,8 @@ private:
 	 * @param visitor visiting interface
 	 */
 	void visitNode_r(const aiNode *node, aiMatrix4x4 worldSpace, const EntityVisitor &visitor);
+
+	void computeTransformForNode(aiNode *node, aiMatrix4x4 &childToWorld)  const;
 
 protected:
 	Assimp::Importer importer;

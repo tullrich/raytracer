@@ -26,4 +26,12 @@ void Light::setAttenuation(float constant, float linear, float quadratic)
 	this->attenuationQuadratic = quadratic;
 }
 
+void PointLight::getAttenuatedRadiance(const glm::vec3 &point, float d, RGB &out) const
+{
+	float cofactor = attenuationConstant + attenuationLinear * d + attenuationQuadratic * pow(d, 2);
+	cofactor = 1.0f / cofactor;
+
+	out = diffuse * cofactor;
+}
+
 } /* namespace raytracer */
