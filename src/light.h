@@ -39,7 +39,16 @@ protected:
 	 * Attenuation vars
 	 */
 	float attenuationConstant, attenuationLinear, attenuationQuadratic;
+	/**
+	 * access to private members
+	 */
+	friend std::ostream& operator<<(std::ostream& o, const Light& b);
 };
+
+/**
+ * Insert stream operator for mesh_data
+ */
+std::ostream& operator<<(std::ostream& o, const Light& b);
 
 
 class PointLight : public Light

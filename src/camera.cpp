@@ -46,7 +46,7 @@ Camera::Camera(const glm::vec3 &position, const glm::vec3 &lookAtPoint, const gl
 
 void Camera::getPixelCenter(int i, int j, int x_res, int y_res, glm::vec3 &out)
 {
-	float near = 100.0f;
+	float near = 150.0f;
 	float L_x = 2.0f * tan(FOV/2.0f) * near; // horizontal length of near plane
 	float L_y = 2.0f * tan(FOV/2.0f) * near; // vertical length of near plane
 	//std::cout << "L_x" << L_x << std::endl;

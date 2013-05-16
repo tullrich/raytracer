@@ -33,7 +33,7 @@ bool AssimpAssetReader::open(const std::string& path)
         aiProcess_CalcTangentSpace       | 
         aiProcess_Triangulate            |
         aiProcess_JoinIdenticalVertices  |
-        aiProcess_SortByPType);
+        aiProcess_SortByPType 			 );
 
 	if(scene == NULL)
 	{
@@ -198,7 +198,7 @@ glm::vec3* vertBufferForAiVector3D(int mNumVertices, aiVector3D *verts, aiMatrix
 	for (int i = 0; i < mNumVertices; i++)
 	{
 		buf[i] = glm::vec3(modelToWorld * glm::vec4(verts[i].x, verts[i].y, verts[i].z, 1));
-		std::cout << "vert (" << buf[i].x << "," << buf[i].y << "," << buf[i].z << ")" << std::endl;
+		std::cout << "vert (" << buf[i].x << "," << buf[i].y << "," << buf[i].z << ") was " << verts[i].x << " " <<  verts[i].y << " " <<  verts[i].z << std::endl;
 	}
 
 	return buf;
@@ -331,7 +331,11 @@ void AssimpAssetReader::visitNode_r(const aiNode *node, aiMatrix4x4 parentToWorl
 	aiMatrix4x4 worldSpace;
 
 	//compute the world space transformation matrix for this model
-	worldSpace = node->mTransformation * parentToWorldSpace;
+	if(node->mParent != NULL)
+	{
+		worldSpace = node->mTransformation * parentToWorldSpace;
+		std::cout << "visiting node " << node->mName.C_Str() << " parent "  << std::endl;
+	}
 
 	/*std::cout << worldSpace.a1 << " " << worldSpace.a2 << " " << worldSpace.a3 << std::endl;
 	std::cout << worldSpace.b1 << " " << worldSpace.b2 << " " << worldSpace.b3 << std::endl;

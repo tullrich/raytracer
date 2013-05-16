@@ -28,10 +28,20 @@ void Light::setAttenuation(float constant, float linear, float quadratic)
 
 void PointLight::getAttenuatedRadiance(const glm::vec3 &point, float d, RGB &out) const
 {
-	float cofactor = attenuationConstant + attenuationLinear * d + attenuationQuadratic * pow(d, 2);
+	float cofactor = attenuationLinear * d + attenuationQuadratic * pow(d, 2);
 	cofactor = 1.0f / cofactor;
 
 	out = diffuse * cofactor;
+}
+
+std::ostream& operator<<(std::ostream& o, const Light& b)
+{
+	return o << "Light '" << b.name << "' {\n" \
+	<< "\tposition: " << b.position << "\n" \
+	<< "\tattenuationConstant:" << b.attenuationConstant << "\n" \
+	<< "\tattenuationLinear:" << b.attenuationLinear << "\n" \
+	<< "\tattenuationQuadratic:" << b.attenuationQuadratic << "\n" \
+	<< "}";
 }
 
 } /* namespace raytracer */

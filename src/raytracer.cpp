@@ -21,11 +21,11 @@ void Raytracer::computeLightAt(const glm::vec3 point, RGB &color)
     for (Light::light_ptr light : scene->lights)
     {
         float d = 0.0f;
-
+        //std::cout << *light << std::endl;
         if (scene->testVisibility(point, light->position, d))
         {
             light->getAttenuatedRadiance(point, d, per_light);
-            std::cout << "per light distance " << d << std::endl;
+            //std::cout << "per light distance " << d << std::endl;
             color += per_light;
         }
     }
@@ -75,7 +75,7 @@ void Raytracer::trace()
             }
             else
             {
-                std::cout << " Some nonhit !"  << std::endl;
+                //std::cout << " Some nonhit !"  << std::endl;
             }
         }
     }

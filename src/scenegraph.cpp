@@ -18,10 +18,10 @@ bool SceneGraph::testVisibility(const glm::vec3 &point1, const glm::vec3 &point2
 	if (traceRay(r, result))
 	{
 		vec3 intersect_point = result.tri.intersectionToPoint(result.intersection); 
-		if (glm::length(intersect_point - point1) < glm::length(point2 - point1))
+		if (glm::length(intersect_point - point1) < d)
 		{
+			//std::cout << " non light hit !"  << std::endl;
 			return false;
-			std::cout << " non light hit !"  << std::endl;
 		}
 	}
 
@@ -38,8 +38,8 @@ void OctreeSceneGraphImp::addEntity(Entity::entity_ptr entity)
 {
 	entities.push_back(entity);
 
-	std::cout << "scene size now " << entities.size() << std::endl;
-	std::cout << "\t adding " << *entity << std::endl;
+	//std::cout << "scene size now " << entities.size() << std::endl;
+	//std::cout << "\t adding " << *entity << std::endl;
 }
 
 
