@@ -64,7 +64,7 @@ bool mesh_data::closestIntersection(const Ray &r, TraceResult &result) const
 
 std::ostream& operator<<(std::ostream& o, const mesh_data& b)
 {
-	return o << "Mesh " << b.name << "' {\n" \
+	return o << "Mesh '" << b.name << "' {\n" \
 		<< "\tnumVertices: " << b.numVertices << "\n" \
 		<< "\tnumFaces:" << b.numFaces << "\n" \
 		<< "\tmaterial:" << *b.mat << "\n" \

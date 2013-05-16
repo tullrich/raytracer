@@ -228,12 +228,13 @@ int main(int argc, char *argv[])
 
     tracer = buildRayTracer(vm);
     scene = buildScene(vm, cam);
+    cam = NULL; // TODO: fix this
     tracer->setScene(scene);
 
     if (cam == NULL)
     {
         cout << "in here" << endl;
-        new Camera(glm::vec3(-5, 0, 0), 1.0f);
+        cam = new Camera();
     }
 
     std::cout << *cam << std::endl;

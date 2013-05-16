@@ -21,6 +21,7 @@ bool SceneGraph::testVisibility(const glm::vec3 &point1, const glm::vec3 &point2
 		if (glm::length(intersect_point - point1) < glm::length(point2 - point1))
 		{
 			return false;
+			std::cout << " non light hit !"  << std::endl;
 		}
 	}
 

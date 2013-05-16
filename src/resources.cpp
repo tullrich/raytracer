@@ -2,6 +2,7 @@
 #include <cstring>
 #include <regex>
 
+#include "common.h"
 #include "resources.h"
 #include "material.h"
 #include "entity.h"
@@ -127,8 +128,8 @@ Light::light_ptr AssimpAssetReader::buildLight(aiLight &ai_light)
 		// get colors as RGB
 		RGB diffuse(ai_light.mColorDiffuse.r, ai_light.mColorDiffuse.g, ai_light.mColorDiffuse.b);
 		RGB ambient(ai_light.mColorAmbient.r, ai_light.mColorAmbient.g, ai_light.mColorAmbient.b);
-		RGB specular(ai_light.mColorSpecular.r, ai_light.mColorSpecular.g, ai_light.mColorSpecular.b)
-;
+		RGB specular(ai_light.mColorSpecular.r, ai_light.mColorSpecular.g, ai_light.mColorSpecular.b);
+
 		aiNode *n = scene->mRootNode->FindNode(ai_light.mName);
 		aiMatrix4x4 childToWorld; // identity
 
@@ -171,14 +172,33 @@ void AssimpAssetReader::accept(const LightVisitor &visitor)
 	}
 }
 
-glm::vec3* vertBufferForAiVector3D(int mNumVertices, aiVector3D *verts)
+glm::vec3* vertBufferForAiVector3D(int mNumVertices, aiVector3D *verts, aiMatrix4x4 &worldSpace)
 {
 	glm::vec3 *buf = new glm::vec3[mNumVertices];
+	glm::mat4 modelToWorld(0.0f);
+	modelToWorld[0][0] = worldSpace.a1;
+	modelToWorld[0][1] = worldSpace.b1;
+	modelToWorld[0][2] = worldSpace.c1;
+	modelToWorld[0][3] = worldSpace.d1;
+	modelToWorld[1][0] = worldSpace.a2;
+	modelToWorld[1][1] = worldSpace.b2;
+	modelToWorld[1][2] = worldSpace.c2;
+	modelToWorld[1][3] = worldSpace.d2;
+	modelToWorld[2][0] = worldSpace.a3;
+	modelToWorld[2][1] = worldSpace.b3;
+	modelToWorld[2][2] = worldSpace.c3;
+	modelToWorld[2][3] = worldSpace.d3;
+	modelToWorld[3][0] = worldSpace.a4;
+	modelToWorld[3][1] = worldSpace.b4;
+	modelToWorld[3][2] = worldSpace.c4;
+	modelToWorld[3][3] = worldSpace.d4;
+
+	std::cout << "MESH MATRIX " << modelToWorld << std::endl;
 
 	for (int i = 0; i < mNumVertices; i++)
 	{
-		buf[i] = glm::vec3(verts[i].x, verts[i].y, verts[i].z);
-		//std::cout << "vert (" << buf[i].x << "," << buf[i].y << "," << buf[i].z << ")" << std::endl;
+		buf[i] = glm::vec3(modelToWorld * glm::vec4(verts[i].x, verts[i].y, verts[i].z, 1));
+		std::cout << "vert (" << buf[i].x << "," << buf[i].y << "," << buf[i].z << ")" << std::endl;
 	}
 
 	return buf;
@@ -243,26 +263,29 @@ Material* AssimpAssetReader::getMaterial(const int mMaterialIndex)
 	return m;
 }
 
-mesh_data::mesh_ptr AssimpAssetReader::buildMesh(const aiMesh &node)
+mesh_data::mesh_ptr AssimpAssetReader::buildMesh(const aiNode &node, int mMeshes_index, aiMatrix4x4 &worldSpace)
 {
 	glm::vec3 *verts = NULL;
 	prim_tri *faces  = NULL;
 	Material *mat    = NULL;
 
+	unsigned int mesh_index = node.mMeshes[mMeshes_index];
+	aiMesh *ai_mesh = scene->mMeshes[mesh_index];
+
 	// allocate and set name
 	mesh_data::mesh_ptr pMesh(new mesh_data());
-	pMesh->setName(node.mName.C_Str());
+	//pMesh->setName(std::string (mesh_index));
 
 	// copy the verts to memory managed by us
-	verts = vertBufferForAiVector3D(node.mNumVertices, node.mVertices);
-	pMesh->setVertices(node.mNumVertices, verts);
+	verts = vertBufferForAiVector3D(ai_mesh->mNumVertices, ai_mesh->mVertices, worldSpace);
+	pMesh->setVertices(ai_mesh->mNumVertices, verts);
 
 	// copy the face indices to memory managed by us
-	faces = faceBufferForAiFace(node.mNumFaces, node.mFaces);
-	pMesh->setFaces(node.mNumFaces, faces);
+	faces = faceBufferForAiFace(ai_mesh->mNumFaces, ai_mesh->mFaces);
+	pMesh->setFaces(ai_mesh->mNumFaces, faces);
 
 	// setup the material pointer
-	mat = getMaterial(node.mMaterialIndex);
+	mat = getMaterial(ai_mesh->mMaterialIndex);
 	if(mat)
 	{
 		pMesh->setMaterial(mat);
@@ -292,8 +315,8 @@ Entity::entity_ptr AssimpAssetReader::buildEntity(const aiNode &node, aiMatrix4x
 
 	for (int i = 0; i < node.mNumMeshes; i++)
 	{
-		mesh_index = node.mMeshes[i];
-		mesh = buildMesh(*(scene->mMeshes[mesh_index]));
+		
+		mesh = buildMesh(node, i, worldSpace);
 		entity->addMeshComponent(mesh);
 	}
 

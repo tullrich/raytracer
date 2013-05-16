@@ -128,7 +128,7 @@ private:
 	Material* getMaterial(const int mMaterialIndex);
 
 
-	mesh_data::mesh_ptr buildMesh(const aiMesh &node);
+	mesh_data::mesh_ptr buildMesh(const aiNode &node, int mMeshes_index, aiMatrix4x4 &worldSpace);
 
 	/**
 	 * allocate an entity for the object contained at this node. Connecting any meshes and materials

@@ -1,35 +1,82 @@
 #include "camera.h"
 #include <cmath>
+#include "common.h"
 
 namespace raytracer {
 
-Camera::Camera(const glm::vec3 &position, const glm::vec3 &lookAt, const glm::vec3 &up, float nearPlane, float farPlane, float FOV, float aspect)
+Camera::Camera()
 {
-	this->position = position; //glm::vec3(0, -3, 0);
-	this->direction = glm::vec3(0, 1, 0); //glm::normalize(lookAt); //
-	this->up = glm::vec3(0, 0, 1); // glm::normalize(up); //
-	this->right = glm::normalize(glm::cross(this->up, this->direction)); // glm::normalize(up); //
+	this->eye       = glm::vec3(0.0f, 0.0f, 0.0f); //  position; // 
+	this->lookAt    = glm::vec3(0.0f, -1.0f, 0.0f); // lookAt; // 
+	this->up        = glm::vec3(1.0f, 0.0f, 0.0f); // up; // 
+	
+	this->nearPlane = 1.0f;
+	this->farPlane  = 100.0f;
+	this->FOV       = 90.0f * M_PI / 180.0f ; // in radians
+	this->aspect    = 16.0f / 9.0f;
+	this->FOVy      = FOV / (aspect); // in radians
+	
+	glm::vec3 w     = glm::normalize(eye - lookAt);
+	glm::vec3 u     = glm::normalize(glm::cross(up, w));
+	glm::vec3 v     = glm::normalize(glm::cross(w, u));
+	glm::vec3 t     = eye;
+
+    this->cameraToWorld = glm::mat4(glm::vec4(u, 0.0f), glm::vec4(v, 0.0f), glm::vec4(w, 0.0f), glm::vec4(t, 1.0f));
+}
+
+Camera::Camera(const glm::vec3 &position, const glm::vec3 &lookAtPoint, const glm::vec3 &upPoint, float nearPlane, float farPlane, float FOV, float aspect)
+{
+	this->eye = glm::vec3(0.0f, 0.0f, 0.0f); //  position; // 
+	this->lookAt =  glm::vec3(1.0f, 0.0f, 0.0f); // lookAt; // 
+	this->up = glm::vec3(0.0f, 1.0f, 0.0f); // up; // 
+
 	this->nearPlane = nearPlane;
 	this->farPlane = farPlane;
-	this->FOV = FOV; // in radians
+	this->FOV = 45 * M_PI / 180 ; // in radians
 	this->FOVy = FOV / aspect; // in radians
 	this->aspect = aspect;
 
-    this->transform = glm::transpose(glm::mat4(glm::vec4(this->direction, this->position.x), glm::vec4(this->up, this->position.y), glm::vec4(this->right, this->position.z),  glm::vec4(0, 0, 0, 1)));
+	glm::vec3 w = glm::normalize(eye - lookAt);
+	glm::vec3 u = glm::normalize(glm::cross(up, w));
+	glm::vec3 v = glm::normalize(glm::cross(w, u));
+	glm::vec3 t = eye;
+
+    this->cameraToWorld = glm::mat4(glm::vec4(u, 0.0f), glm::vec4(v, 0.0f), glm::vec4(w, 0.0f), glm::vec4(t, 1.0f));
 }
 
-/*Camera::directionForPixel(int i, int j, int width, int height, glm::vec3 &out)
+void Camera::getPixelCenter(int i, int j, int x_res, int y_res, glm::vec3 &out)
 {
-	float x_inc = i * (2 * tan(FOV/2)) / width;
-	float y_inc = j * (2 * tan(FOV/2)) / width;
-}*/
+	float near = 100.0f;
+	float L_x = 2.0f * tan(FOV/2.0f) * near; // horizontal length of near plane
+	float L_y = 2.0f * tan(FOV/2.0f) * near; // vertical length of near plane
+	//std::cout << "L_x" << L_x << std::endl;
+
+
+	float pixel_x  = L_x / x_res;// horizontal length of each pixel
+	float pixel_y  = L_y / y_res;// vertical length of each pixel
+	
+	float center_x_i = pixel_x * ((2.0f * i + 1.0f) / (2.0f * x_res) - 0.5f);
+	float center_y_j = pixel_y * ((2.0f * j + 1.0f) / (2.0f * y_res) - 0.5f);
+	glm::vec4 pixel_center(center_x_i, center_y_j, -1.0f, 1.0f);
+
+	out = glm::vec3(cameraToWorld * pixel_center);
+
+	if(i == 3 && j == 3)
+	{
+		std::cout << "pixel_x " << pixel_x << std::endl;
+		std::cout << "center_x_i " << center_x_i << std::endl;
+		std::cout << "center_y_j " << center_y_j << std::endl;
+		std::cout << "out " << out << std::endl;
+	}
+
+}
 
 
 std::ostream& operator<<(std::ostream& o, const Camera& b)
 {
 	return o << "Camera {\n"
-		<< "\tposition : " << b.position
-		<< "\n\tdirection : " << b.direction
+		<< "\teye : " << b.eye
+		<< "\n\tlookAt : " << b.lookAt
 		<< "\n\tup : " << b.up
 		<< "\n\tright : " << b.right
 		<< "\n\tnearPlane : " << b.nearPlane
@@ -37,6 +84,7 @@ std::ostream& operator<<(std::ostream& o, const Camera& b)
 		<< "\n\tFOV : " << b.FOV
 		<< "\n\tFOVy : " << b.FOVy
 		<< "\n\taspect: " << b.aspect
+		<< "\n\tcameraToWorld: \n" << b.cameraToWorld
 		<< "\n}";
 }
 

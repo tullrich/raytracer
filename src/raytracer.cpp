@@ -22,44 +22,24 @@ void Raytracer::computeLightAt(const glm::vec3 point, RGB &color)
     {
         float d = 0.0f;
 
-        if (scene->testVisibility(point, glm::vec3(-20, 20, 0), d))
+        if (scene->testVisibility(point, light->position, d))
         {
             light->getAttenuatedRadiance(point, d, per_light);
+            std::cout << "per light distance " << d << std::endl;
             color += per_light;
         }
     }
 }
 
-void Raytracer::rayForPixel(int u, int v, Ray &r) const
+static int once = false;
+
+void Raytracer::rayForPixel(int x, int y, Ray &r) const
 {
-    glm::vec3 point, point2;
 
-    //float x_inc = tan(camera->FOV) * ((2 * u) - img.width) / img.width;
-    //float x_inc = 2 * (camera->nearPlane * tan(camera->FOV)) / img.width;
-    //float y_inc = tan(camera->FOV) * ((2 * v) - img.height) / img.height;
-    //std::cout << "plane width " << tan(M_PI / 2 / 2) * camera->nearPlane * 2 << std::endl;
-    float x_inc = tan(camera->FOV / 2) * camera->nearPlane * 2 / img.width;
-    //std::cout << "unit plane width " << x_inc << std::endl;
-    float y_inc = tan(camera->FOVy / 2) * camera->nearPlane * 2 / img.height;
+    glm::vec3 pixel_center(0);
+    camera->getPixelCenter(x, y, img.width, img.height, pixel_center);
 
-    // 0.5*(2y+1-H)*Yinc
-
-    glm::vec3 image_center(0);// = camera->position;// + glm::vec1(1);// + (camera->nearPlane * camera->direction);
-
-
-    //std::cout << side << std::endl;
-    ///0.5 * (2 * i - img.width) * x_inc
-    ///0.5 * (2 * j - img.width) * y_inc
-    glm::vec4 temp(u * x_inc - (img.width * x_inc / 2), camera->nearPlane, v * y_inc - (img.height * y_inc / 2), 1);
-
-    //float sum = (0.5 * (2 *j + 1 - img.height))  + (0.5 * (2 *i + 1 - img.width) * x_inc);
-    //glm::vec3 dir = vec3(camera->direction.x + sum, camera->direction.y + sum, camera->direction.z + sum);
-    //glm::vec3 dir = vec3(camera->direction.x + sum, camera->direction.y + sum, camera->direction.z + sum);
-    //image_center = vec3(camera->transform * temp);
-    //image_center += 
-    //std::cout << glm::vec3(temp) << std::endl;
-    vec3 final = camera->position + glm::normalize(glm::vec3(temp));
-    r = Ray(camera->position, final);
+    r = Ray(camera->eye, pixel_center);
 }
 
 
@@ -81,11 +61,21 @@ void Raytracer::trace()
 
             if(scene->traceRay(r, result))
             {
-                //std::cout << " got a hit on mesh " << *result.mesh << std::endl;
+                if (!once)
+                {
+                    std::cout << " got a hit on mesh "  << std::endl;
+                    once = true;
+                }
 
                 computeLightAt(result.tri.intersectionToPoint(result.intersection), color);
 
+                color = color * result.mat->diffuse;
+
                 img.setPixelColor(u, v , color);
+            }
+            else
+            {
+                std::cout << " Some nonhit !"  << std::endl;
             }
         }
     }
@@ -108,6 +98,16 @@ Raytracer* RaytraceBuilder::buildRaytracer()
 std::ostream& operator<<(std::ostream& o, const glm::vec3& b)
 {
     return  o << "<" << b.x << ", " << b.y << ", " << b.z << ">";
+}
+
+std::ostream& operator<<(std::ostream& o, const glm::mat4& b)
+{
+    o << "\t[" << b[0][0] << ", " << b[1][0] << ", " << b[2][0] << ", " << b[3][0] << std::endl;
+    o << "\t " << b[0][1] << ", " << b[1][1] << ", " << b[2][1] << ", " << b[3][1] << std::endl;
+    o << "\t " << b[0][2] << ", " << b[1][2] << ", " << b[2][2] << ", " << b[3][2] << std::endl;
+    o << "\t " << b[0][3] << ", " << b[1][3] << ", " << b[2][3] << ", " << b[3][3] << "]";
+
+    return o;
 }
 
 std::ostream& operator<<(std::ostream& o, const Triangle& b)

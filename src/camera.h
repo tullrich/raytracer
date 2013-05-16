@@ -11,12 +11,23 @@ namespace raytracer {
 class Camera
 {
 public:
-	Camera(const glm::vec3 &position, float farPlane) : position(position), direction(1, 0, 0), up(0, 1, 0), right(0, 0, 1), nearPlane(0), farPlane(farPlane), FOV(0), FOVy(0), aspect(0), transform(0){ };
+	Camera();
 	Camera(const glm::vec3 &position, const glm::vec3 &lookAt, const glm::vec3 &up, float nearPlane, float farPlane, float FOV, float aspect);
 
-	glm::vec3 position, direction, up, right;
-	float nearPlane, farPlane, FOV, FOVy, aspect;
-	glm::mat4 transform;
+	glm::vec3 eye, lookAt, up, right;
+	float nearPlane, farPlane, FOV, FOVy, aspect, ;
+	glm::mat4 cameraToWorld;
+
+	/**
+	 * Compute the worldspace vector cooresponding to the center of pixel i, j using
+	 * the orientation of this camera.	
+	 * @param i      horizontal pixel number
+	 * @param j      vertical pixel number
+	 * @param x_res  horizontal resolution
+	 * @param y_res  vertical resolution
+	 * @param out    set to the resulting worldspace vector
+	 */
+	void getPixelCenter(int i, int j, int x_res, int y_res, glm::vec3 &out);
 };
 
 /**
