@@ -54,12 +54,12 @@ public:
 	 */
 	AABB aabb;
 
-private:
 	/**
 	 * list of composite meshes making up this entity
 	 */
 	mesh_list meshes;
 
+private:
 	/**
 	 * name of the mesh
 	 */

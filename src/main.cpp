@@ -210,6 +210,8 @@ static SceneGraph* buildScene(const po::variables_map &vm, Camera* &cam)
         addToScene(injector, filename, cam);
     }
 
+    scene->build();
+
     return scene;
 }
 

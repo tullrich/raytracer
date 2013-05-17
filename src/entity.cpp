@@ -47,6 +47,7 @@ bool Entity::closestIntersection(const Ray &r, TraceResult &result) const
 }
 
 
+
 std::ostream& operator<<(std::ostream& o, const Entity& b)
 {
 	o << "Entity '" << b.name << "' {\n" \

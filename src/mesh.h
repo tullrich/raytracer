@@ -57,7 +57,6 @@ public:
 	 */
 	bool closestIntersection(const Ray &r, TraceResult &result) const;
 
-private:
 
 	std::string name;
 	
@@ -71,6 +70,7 @@ private:
 
 	const Material *mat;
 
+private:
 	/**
 	 * access to private members
 	 */

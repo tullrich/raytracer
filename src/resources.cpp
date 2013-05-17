@@ -193,12 +193,12 @@ glm::vec3* vertBufferForAiVector3D(int mNumVertices, aiVector3D *verts, aiMatrix
 	modelToWorld[3][2] = worldSpace.c4;
 	modelToWorld[3][3] = worldSpace.d4;
 
-	std::cout << "MESH MATRIX " << modelToWorld << std::endl;
+	//std::cout << "MESH MATRIX " << modelToWorld << std::endl;
 
 	for (int i = 0; i < mNumVertices; i++)
 	{
 		buf[i] = glm::vec3(modelToWorld * glm::vec4(verts[i].x, verts[i].y, verts[i].z, 1));
-		std::cout << "vert (" << buf[i].x << "," << buf[i].y << "," << buf[i].z << ") was " << verts[i].x << " " <<  verts[i].y << " " <<  verts[i].z << std::endl;
+		//std::cout << "vert (" << buf[i].x << "," << buf[i].y << "," << buf[i].z << ") was " << verts[i].x << " " <<  verts[i].y << " " <<  verts[i].z << std::endl;
 	}
 
 	return buf;

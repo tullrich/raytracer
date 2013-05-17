@@ -73,6 +73,7 @@ private:
 };
 
 
+
 } /* namespace raytracer */
 
 #endif /* _SCENE_GRAPH_H_ */

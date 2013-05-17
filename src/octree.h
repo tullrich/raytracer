@@ -7,6 +7,18 @@
 
 namespace raytracer {
 
+
+/**
+ * Stored octree primitive;
+ */
+struct OctPrimitive
+{
+	Triangle tri;
+	Entity::entity_ptr entity;
+	mesh_data::mesh_ptr mesh;
+	OctPrimitive *next;
+};
+
 /**
  * Represents an axially-aligned spatial subdivision centered at center and extending 
  * halfWidth along axis.
@@ -15,11 +27,12 @@ class OctNode
 {
 public:
 	~OctNode();
+	void append(OctPrimitive *prim);
 
 	glm::vec3 center;
 	float halfWidth;
 	OctNode *child[8];
-	EntityList entities;
+	OctPrimitive *head;
 };
 
 /**
@@ -28,7 +41,7 @@ public:
 class OctreeSceneGraphImp : public SceneGraph
 {
 public:
-	OctreeSceneGraphImp();
+	OctreeSceneGraphImp(int treeDepth);
 	virtual ~OctreeSceneGraphImp();
 
 	/**
@@ -51,10 +64,15 @@ public:
 	 * down as far as possible
 	 */
 	virtual void build();
+
+	OctNode* buildOctree_r(glm::vec3 center,  float halfWidth, int stopDepth);
+
 private:
 	std::list<Entity::entity_ptr> allEntities; // list of all entities, not used for ray trace calculations
 
 	OctNode *root;
+
+	int maxDepth;
 };
 
 
