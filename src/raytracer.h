@@ -38,7 +38,7 @@ public:
 private:
 	void rayForPixel(int i, int j, Ray &r) const;
 
-	void computeLightAt(const glm::vec3 point, RGB &color);
+	bool computeLightAt(const Material &mat, const glm::vec3 point, RGB &color);
 
     Image img;
 

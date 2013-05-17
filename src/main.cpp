@@ -217,6 +217,7 @@ int main(int argc, char *argv[])
 {
     Raytracer *tracer;
     SceneGraph *scene;
+    Light *light;
     Camera *cam = NULL;
     po::variables_map vm;
 
@@ -239,6 +240,12 @@ int main(int argc, char *argv[])
 
     std::cout << *cam << std::endl;
     tracer->setCamera(cam);
+
+    light = new PointLight("custom");
+    light->setLocation(glm::vec3(0, 0, 0), glm::vec3(0));
+    light->setColor(RGB(0), RGB(1.0f, 1.0f, 1.0f), RGB(0));
+    light->setAttenuation(1.0f, 0.01f, 0.01f);
+    scene->addLight(Light::light_ptr(light));
 
     tracer->trace();
 /*

@@ -7,7 +7,7 @@
 
 namespace raytracer {
 
-
+bool debugvar = false;
 
 bool SceneGraph::testVisibility(const glm::vec3 &point1, const glm::vec3 &point2, float &distance) const
 {
@@ -20,6 +20,7 @@ bool SceneGraph::testVisibility(const glm::vec3 &point1, const glm::vec3 &point2
 		vec3 intersect_point = result.tri.intersectionToPoint(result.intersection); 
 		if (glm::length(intersect_point - point1) < d)
 		{
+
 			//std::cout << " non light hit !"  << std::endl;
 			return false;
 		}

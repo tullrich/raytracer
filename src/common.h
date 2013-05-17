@@ -20,7 +20,7 @@ namespace raytracer {
 
 #define OPTION_WIDTH "w"
 #define OPTION_HEIGHT "h"
-#define OPTION_OUTPATH "output-filepath"
+#define OPTION_OUTPATH "o"
 #define OPTION_ASSETPATH "asset-filepath"
 
 typedef glm::vec3 RGB;
@@ -43,6 +43,15 @@ public:
 	 */
 	glm::vec3 intersectionToPoint(glm::vec4 &intersection);
 };
+
+glm::vec3 adjustFloatingPointToward(const glm::vec3 point, const glm::vec3 &towards);
+
+inline float clamp(float x, float a, float b)
+{
+    return x < a ? a : (x > b ? b : x);
+}
+
+extern bool debugvar;
 
 std::ostream& operator<<(std::ostream& o, const glm::vec3& b);
 std::ostream& operator<<(std::ostream& o, const glm::mat4& b);

@@ -329,11 +329,12 @@ void AssimpAssetReader::visitNode_r(const aiNode *node, aiMatrix4x4 parentToWorl
 	aiNode *child = NULL;
 	Entity::entity_ptr ent = NULL;
 	aiMatrix4x4 worldSpace;
-
+	
+	worldSpace = node->mTransformation * parentToWorldSpace;
+	
 	//compute the world space transformation matrix for this model
 	if(node->mParent != NULL)
 	{
-		worldSpace = node->mTransformation * parentToWorldSpace;
 		std::cout << "visiting node " << node->mName.C_Str() << " parent "  << std::endl;
 	}
 

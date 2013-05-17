@@ -6,9 +6,9 @@ namespace raytracer {
 
 Camera::Camera()
 {
-	this->eye       = glm::vec3(0.0f, 0.0f, 0.0f); //  position; // 
-	this->lookAt    = glm::vec3(0.0f, -1.0f, 0.0f); // lookAt; // 
-	this->up        = glm::vec3(1.0f, 0.0f, 0.0f); // up; // 
+	this->eye       = glm::vec3(20.0f, 20.0f, 20.0f); //  position; // 
+	this->lookAt    = glm::vec3(0.0f, 0.0f, 0.0f); // lookAt; // 
+	this->up        = glm::vec3(0.0f, 1.0f, 0.0f); // up; // 
 	
 	this->nearPlane = 1.0f;
 	this->farPlane  = 100.0f;

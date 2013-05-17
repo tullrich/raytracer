@@ -14,7 +14,7 @@ Raytracer::~Raytracer()
 {
 }
 
-void Raytracer::computeLightAt(const glm::vec3 point, RGB &color)
+bool Raytracer::computeLightAt(const Material &mat, const glm::vec3 point, RGB &color)
 {
     RGB per_light(0);
 
@@ -26,7 +26,15 @@ void Raytracer::computeLightAt(const glm::vec3 point, RGB &color)
         {
             light->getAttenuatedRadiance(point, d, per_light);
             //std::cout << "per light distance " << d << std::endl;
-            color += per_light;
+            color += per_light * mat.diffuse;
+
+            //std::cout << "distance to light " << d << std::endl;
+
+            //color = color * result.mat->diffuse; // TAKE THIS OUT
+        }
+        else
+        {
+            //color = RGB(1, 1, 0);
         }
     }
 }
@@ -41,6 +49,7 @@ void Raytracer::rayForPixel(int x, int y, Ray &r) const
 
     r = Ray(camera->eye, pixel_center);
 }
+
 
 
 void Raytracer::trace()
@@ -67,17 +76,26 @@ void Raytracer::trace()
                     once = true;
                 }
 
-                computeLightAt(result.tri.intersectionToPoint(result.intersection), color);
+                glm::vec3 surfacePoint = adjustFloatingPointToward(result.tri.intersectionToPoint(result.intersection), r.q);
+                if(computeLightAt(*result.mat, surfacePoint, color))
+                {
 
-                color = color * result.mat->diffuse;
+                    //std::cout << "distance to light " << result.-> << std::endl;
+                }
+
 
                 img.setPixelColor(u, v , color);
             }
             else
             {
-                //std::cout << " Some nonhit !"  << std::endl;
+                img.setPixelColor(u, v , RGB(0.1f, 0.1f, 0.1f));
             }
         }
+    }
+
+    for (Light::light_ptr light : scene->lights)
+    {
+        std::cout << *light << std::endl;
     }
 
    std::cout << "num meshes " << MeshManager::getInstance().size() << std::endl;
@@ -119,5 +137,15 @@ glm::vec3 Triangle::intersectionToPoint(glm::vec4 &intersection)
 {
     return intersection.x * A + intersection.y * B + intersection.z * C;
 }
+
+
+
+glm::vec3 adjustFloatingPointToward(const glm::vec3 point, const glm::vec3 &towards)
+{
+    glm::vec3 n = towards - point;
+
+    return point + .00001f * n;
+}
+
 
 } /* namespace raytracer */

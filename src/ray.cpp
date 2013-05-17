@@ -22,13 +22,17 @@ bool Ray::intersects(const Triangle &tri, glm::vec4 &intersection) const
 	// if deno <= 0, ray is parallel or point away from the triangle
 	if(d <= 0.0f)
 	{	
+		if (debugvar)
+			std::cout << "d" << std::endl;
 		return false;
 	}
 
 	vec3 ap = p - tri.A;
 	float t = dot(ap, n);
-	if(t <= 0.0f) 
+	if(t < 0.0f) 
 	{	
+		if (debugvar)
+			std::cout << "t" << t << std::endl;
 		return false;
 	}
 
@@ -36,11 +40,15 @@ bool Ray::intersects(const Triangle &tri, glm::vec4 &intersection) const
 	float v = dot(ac, e);
 	if (v <0.0f || v > d)
 	{	
+		if (debugvar)
+			std::cout << "v" << std::endl;
 		return false;
 	}
 	float w = -dot(ab, e);
 	if (w < 0.0f || v + w > d)
 	{	
+		if (debugvar)
+			std::cout << "w" << std::endl;
 		return false;
 	}
 

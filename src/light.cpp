@@ -28,8 +28,10 @@ void Light::setAttenuation(float constant, float linear, float quadratic)
 
 void PointLight::getAttenuatedRadiance(const glm::vec3 &point, float d, RGB &out) const
 {
-	float cofactor = attenuationLinear * d + attenuationQuadratic * pow(d, 2);
-	cofactor = 1.0f / cofactor;
+	float cofactor = attenuationConstant + attenuationLinear * d + attenuationQuadratic * pow(d, 2);
+	cofactor = clamp(1.0f / cofactor, 0.0, 1.0);
+
+	//std::cout << "d " << d << " cofactor " << cofactor << " result " << diffuse * cofactor << std::endl;
 
 	out = diffuse * cofactor;
 }
@@ -41,6 +43,9 @@ std::ostream& operator<<(std::ostream& o, const Light& b)
 	<< "\tattenuationConstant:" << b.attenuationConstant << "\n" \
 	<< "\tattenuationLinear:" << b.attenuationLinear << "\n" \
 	<< "\tattenuationQuadratic:" << b.attenuationQuadratic << "\n" \
+	<< "\tdiffuse:" << b.diffuse << "\n" \
+	<< "\tambient:" << b.ambient << "\n" \
+	<< "\tspecular:" << b.specular << "\n" \
 	<< "}";
 }
 
