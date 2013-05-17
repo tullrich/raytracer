@@ -10,6 +10,7 @@ namespace raytracer {
 
 
 typedef std::list<Light::light_ptr> LightList;
+typedef std::list<Entity::entity_ptr> EntityList;
 
 /**
  * Holds scene information and facilitates quick ray 
@@ -18,11 +19,11 @@ class SceneGraph
 {
 public:
 	SceneGraph() {};
-
 	virtual ~SceneGraph() {};
 	virtual void addEntity(Entity::entity_ptr entity) = 0;
-	virtual void addLight(Light::light_ptr light) = 0;
-	virtual bool traceRay(Ray &r, TraceResult &result) const = 0;
+	virtual void addLight(Light::light_ptr light);
+	virtual bool traceRay(const Ray &r, TraceResult &result) const = 0;
+	virtual void build() = 0;
 
 	bool testVisibility(const glm::vec3 &point1, const glm::vec3 &point2, float &distance) const;
 
@@ -31,7 +32,7 @@ public:
 };
 
 /**
- * Octree scenegraph implementation
+ * Brute force scenegraph implementation
  */
 class ButeForceSceneGraphImp : public SceneGraph
 {
@@ -39,11 +40,11 @@ public:
 	ButeForceSceneGraphImp();
 	virtual ~ButeForceSceneGraphImp() {};
 
-	virtual bool traceRay(Ray &r, TraceResult &result) const;
-	virtual void addLight(Light::light_ptr light);
+	virtual bool traceRay(const Ray &r, TraceResult &result) const;
 	virtual void addEntity(Entity::entity_ptr entity);
+	virtual void build() {};
 private:
-	std::list<Entity::entity_ptr> entities;
+	EntityList entities;
 };
 
 /**

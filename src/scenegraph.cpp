@@ -3,11 +3,19 @@
 #include <assimp/postprocess.h> 
 
 #include "scenegraph.h"
+#include "octree.h"
+
 
 
 namespace raytracer {
 
 bool debugvar = false;
+
+void SceneGraph::addLight(Light::light_ptr light)
+{
+	lights.push_back(light);
+}
+
 
 bool SceneGraph::testVisibility(const glm::vec3 &point1, const glm::vec3 &point2, float &distance) const
 {
@@ -31,9 +39,7 @@ bool SceneGraph::testVisibility(const glm::vec3 &point1, const glm::vec3 &point2
 }
 
 ButeForceSceneGraphImp::ButeForceSceneGraphImp()
-{
-
-}
+{}
 
 void ButeForceSceneGraphImp::addEntity(Entity::entity_ptr entity)
 {
@@ -44,13 +50,7 @@ void ButeForceSceneGraphImp::addEntity(Entity::entity_ptr entity)
 }
 
 
-void ButeForceSceneGraphImp::addLight(Light::light_ptr light)
-{
-	lights.push_back(light);
-}
-
-
-bool ButeForceSceneGraphImp::traceRay(Ray &r, TraceResult &result) const
+bool ButeForceSceneGraphImp::traceRay(const Ray &r, TraceResult &result) const
 {
 	TraceResult temp_result;
 	float temp_t= -1;
