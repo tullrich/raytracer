@@ -30,12 +30,12 @@ bool SceneGraph::testVisibility(const glm::vec3 &point1, const glm::vec3 &point2
 	return true;
 }
 
-OctreeSceneGraphImp::OctreeSceneGraphImp()
+ButeForceSceneGraphImp::ButeForceSceneGraphImp()
 {
 
 }
 
-void OctreeSceneGraphImp::addEntity(Entity::entity_ptr entity)
+void ButeForceSceneGraphImp::addEntity(Entity::entity_ptr entity)
 {
 	entities.push_back(entity);
 
@@ -44,13 +44,13 @@ void OctreeSceneGraphImp::addEntity(Entity::entity_ptr entity)
 }
 
 
-void OctreeSceneGraphImp::addLight(Light::light_ptr light)
+void ButeForceSceneGraphImp::addLight(Light::light_ptr light)
 {
 	lights.push_back(light);
 }
 
 
-bool OctreeSceneGraphImp::traceRay(Ray &r, TraceResult &result) const
+bool ButeForceSceneGraphImp::traceRay(Ray &r, TraceResult &result) const
 {
 	TraceResult temp_result;
 	float temp_t= -1;
@@ -74,7 +74,7 @@ bool OctreeSceneGraphImp::traceRay(Ray &r, TraceResult &result) const
 SceneGraph* SceneGraphFactory::getSceneGraph()
 {
 	// preset for now
-	return new OctreeSceneGraphImp();
+	return new ButeForceSceneGraphImp();
 }
 
 

@@ -33,11 +33,11 @@ public:
 /**
  * Octree scenegraph implementation
  */
-class OctreeSceneGraphImp : public SceneGraph
+class ButeForceSceneGraphImp : public SceneGraph
 {
 public:
-	OctreeSceneGraphImp();
-	virtual ~OctreeSceneGraphImp() {};
+	ButeForceSceneGraphImp();
+	virtual ~ButeForceSceneGraphImp() {};
 
 	virtual bool traceRay(Ray &r, TraceResult &result) const;
 	virtual void addLight(Light::light_ptr light);
