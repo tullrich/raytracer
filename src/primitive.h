@@ -3,6 +3,7 @@
 
 #include <list>
 #include "common.h"
+#include "aabb.h"
 #include "ray.h"
 
 namespace raytracer {
@@ -15,6 +16,7 @@ class Primitive
 public:
 	Primitive() {};
 	virtual bool intersects(const Ray &r,  TraceResult &result) const = 0;
+	virtual AABB bounds() const = 0;
 };
 
 /**
@@ -25,6 +27,7 @@ class TrianglePrimitive : public Primitive
 public:
 	TrianglePrimitive(const Triangle &face, const Material *material) : face(face), material(material) {};
 	virtual bool intersects(const Ray &r,  TraceResult &result) const;
+	virtual AABB bounds() const;
 
 protected:
 	Triangle face;

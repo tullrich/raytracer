@@ -15,4 +15,12 @@ bool TrianglePrimitive::intersects(const Ray &r,  TraceResult &result) const
 	return false;
 }
 
+AABB TrianglePrimitive::bounds() const
+{
+	AABB contains;
+	AABBContainTriangle(contains, triangle);
+
+	return contains;
+}
+
 } /* namespace raytracer */
