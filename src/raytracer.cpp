@@ -77,7 +77,7 @@ void Raytracer::trace()
                 }
 
                 glm::vec3 surfacePoint = adjustFloatingPointToward(result.tri.intersectionToPoint(result.intersection), r.q);
-                if(computeLightAt(*result.mat, surfacePoint, color))
+                if(computeLightAt(*(result.mesh->mat), surfacePoint, color))
                 {
 
                     //std::cout << "distance to light " << result.-> << std::endl;

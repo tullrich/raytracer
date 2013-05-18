@@ -2,13 +2,12 @@
 
 namespace raytracer {
 
-TraceResult::TraceResult(const glm::vec4 &intersection, const Triangle &tri, std::shared_ptr<Entity> &entity, std::shared_ptr<mesh_data> mesh, const Material *mat)
+TraceResult::TraceResult(const glm::vec4 &intersection, const Triangle &tri, std::shared_ptr<Entity> &entity, std::shared_ptr<mesh_data> mesh)
 {
 	this->intersection = intersection;
 	this->tri          = tri;
 	this->entity       = entity;
 	this->mesh         = mesh;
-	this->mat          = mat;
 }
 
 

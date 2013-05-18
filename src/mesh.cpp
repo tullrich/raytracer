@@ -39,7 +39,6 @@ void mesh_data::setFaces(int count, const prim_tri *ptr)
 bool mesh_data::closestIntersection(const Ray &r, TraceResult &result) const
 {
 	TraceResult temp_result;
-	temp_result.mat = mat;
 	float t = -1;
 
 	for (int i = 0; i < numFaces; ++i)
