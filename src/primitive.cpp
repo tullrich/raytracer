@@ -18,7 +18,7 @@ bool TrianglePrimitive::intersects(const Ray &r,  TraceResult &result) const
 AABB TrianglePrimitive::bounds() const
 {
 	AABB contains;
-	AABBContainTriangle(contains, triangle);
+	AABBContainTriangle(contains, face);
 
 	return contains;
 }

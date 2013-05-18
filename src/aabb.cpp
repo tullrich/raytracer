@@ -1,4 +1,5 @@
 #include "aabb.h"
+#include "primitive.h"
 
 namespace raytracer {
 
@@ -29,6 +30,19 @@ void AABBContainTriangle(AABB &aabb, const Triangle &tri)
 	AABBContainVertex(aabb, tri.B);
 	AABBContainVertex(aabb, tri.C);
 }
+
+void AABBContainAABB(AABB &aabb, const AABB &aabb2)
+{
+	AABBContainVertex(aabb, aabb2.max);
+	AABBContainVertex(aabb, aabb2.min);
+}
+
+void AABBcontainPrimitive(AABB &aabb, const Primitive &primitive)
+{
+	AABB bounds = primitive.bounds();
+	AABBContainAABB(aabb, bounds);
+}
+
 
 std::ostream& operator<<(std::ostream& o, const AABB& b)
 {
