@@ -43,6 +43,7 @@ public:
 	~OctNode();
 
 	void append(Primitive *prim);
+	bool isLeaf();
 	glm::vec3  centerForQuadrant(Quadrant quadrent);
 	void allocateChildren();
 

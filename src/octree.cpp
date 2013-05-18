@@ -39,6 +39,11 @@ glm::vec3 OctNode::centerForQuadrant(Quadrant q)
 	return center;
 }
 
+bool OctNode::isLeaf()
+{
+	return child[0] != NULL;
+}
+
 void OctNode::allocateChildren()
 {
 	float childHalfWidth = halfWidth / 2.0f;
