@@ -52,7 +52,14 @@ void AABBContainAABB(AABB &aabb, const AABB &aabb2);
  * @param aabb  Axially-Aligned bounding box to grow
  * @param aabb2 primitive to encompass
  */
-void AABBcontainPrimitive(AABB &aabb, const Primitive &primitive);
+void AABBContainPrimitive(AABB &aabb, const Primitive &primitive);
+
+/**
+ * Compute the halfwidth necessary to contain this aabb
+ * @param  aabb AABB to compute for
+ * @return      halfwidth, always >= 0
+ */
+float AABBMaxHalfWidth(const AABB &aabb);
 
 /**
  * Insert stream operator for AABB

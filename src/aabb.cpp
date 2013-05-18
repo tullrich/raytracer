@@ -37,11 +37,21 @@ void AABBContainAABB(AABB &aabb, const AABB &aabb2)
 	AABBContainVertex(aabb, aabb2.min);
 }
 
-void AABBcontainPrimitive(AABB &aabb, const Primitive &primitive)
+void AABBContainPrimitive(AABB &aabb, const Primitive &primitive)
 {
 	AABB bounds = primitive.bounds();
 	AABBContainAABB(aabb, bounds);
 }
+
+float AABBMaxHalfWidth(const AABB &aabb)
+{
+	float dx = abs(aabb.max.x - aabb.min.x);
+	float dy = abs(aabb.max.y - aabb.min.y);
+	float dz = abs(aabb.max.z - aabb.min.z);
+
+	return fmax(dx, fmax(dy, dz));
+}
+
 
 
 std::ostream& operator<<(std::ostream& o, const AABB& b)
