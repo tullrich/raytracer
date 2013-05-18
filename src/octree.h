@@ -20,20 +20,10 @@ enum Quadrant
 	BSE  // back-south-east
 };
 
-/**
- * Stored octree primitive;
- */
-struct OctPrimitive
-{ 
-	Triangle tri;
-	Entity::entity_ptr entity;
-	mesh_data::mesh_ptr mesh;
-	OctPrimitive *next;
-};
 
 /**
- * Represents an axially-aligned spatial subdivision centered at center and extending 
- * halfWidth along axis.
+ * axially-aligned spatial subdivision centered at center and extending 
+ * halfWidth along each axis.
  */
 class OctNode
 {
