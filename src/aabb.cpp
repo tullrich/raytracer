@@ -2,20 +2,32 @@
 
 namespace raytracer {
 
+void AABBContainVertex(AABB &aabb, const glm::vec3 &vertex)
+{
+	if (aabb.max.x > vertex.x) aabb.max.x = vertex.x;
+	if (aabb.min.x < vertex.x) aabb.min.x = vertex.x;
+
+	if (aabb.max.y > vertex.y) aabb.max.y = vertex.y;
+	if (aabb.min.y < vertex.y) aabb.min.y = vertex.y;
+
+	if (aabb.max.z > vertex.z) aabb.max.z = vertex.z;
+}
+
+
 
 void AABBContainVertices(AABB &aabb, int  numVertices, const vec3 *buffer)
 {
 	for (int i = 0; i < numVertices; ++i)
 	{
-		if (aabb.max.x > buffer[i].x) aabb.max.x = buffer[i].x;
-		if (aabb.min.x < buffer[i].x) aabb.min.x = buffer[i].x;
-
-		if (aabb.max.y > buffer[i].y) aabb.max.y = buffer[i].y;
-		if (aabb.min.y < buffer[i].y) aabb.min.y = buffer[i].y;
-
-		if (aabb.max.z > buffer[i].z) aabb.max.z = buffer[i].z;
-		if (aabb.min.z < buffer[i].z) aabb.min.z = buffer[i].z;
+		AABBContainVertex(aabb, buffer[i]);
 	}
+}
+
+void AABBContainTriangle(AABB &aabb, const Triangle &tri)
+{
+	AABBContainVertex(aabb, tri.A);
+	AABBContainVertex(aabb, tri.B);
+	AABBContainVertex(aabb, tri.C);
 }
 
 std::ostream& operator<<(std::ostream& o, const AABB& b)
