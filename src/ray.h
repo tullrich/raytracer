@@ -14,14 +14,18 @@ class mesh_data; // forward declaration
 /**
  * class containing the result of a success full ray cast
  */
-typedef struct
+class TraceResult
 {
+public:
+	TraceResult() : intersection(0), entity(NULL), mesh(NULL), mat(NULL) {};
+	TraceResult(const glm::vec4 &intersection, const Triangle &tri, std::shared_ptr<Entity> &entity, std::shared_ptr<mesh_data> mesh, const Material *mat);
+
 	glm::vec4 intersection; // barycentric coordinates representing the
 	Triangle tri; // triangle of impact
 	std::shared_ptr<Entity> entity; // ptr to the entity of intersection
 	std::shared_ptr<mesh_data>  mesh; // ptr to the mesh of intersection
 	const Material *mat; // material of the impacting triangle
-} TraceResult;
+};
 
 /**
  * Ray r = p + t(q), t >= 0
