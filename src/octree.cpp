@@ -18,10 +18,58 @@ void OctNode::append(Primitive *prim)
 	primitives.push_back(prim);
 }
 
+
+glm::vec3 OctNode::centerForQuadrant(Quadrant q)
+{
+	glm::vec3 qCenter = center;
+	float offset = halfWidth / 2.0f;
+
+	switch(q)
+	{
+		case FNE : qCenter.z += offset; qCenter.y += offset; qCenter.x += offset; break;
+		case FNW : qCenter.z += offset; qCenter.y += offset; qCenter.x -= offset; break;
+		case FSE : qCenter.z += offset; qCenter.y -= offset; qCenter.x += offset; break;
+		case FSW : qCenter.z += offset; qCenter.y -= offset; qCenter.x -= offset; break;
+		case BNE : qCenter.z -= offset; qCenter.y += offset; qCenter.x += offset; break;
+		case BNW : qCenter.z -= offset; qCenter.y += offset; qCenter.x -= offset; break;
+		case BSE : qCenter.z -= offset; qCenter.y -= offset; qCenter.x += offset; break;
+		case BSW : qCenter.z -= offset; qCenter.y -= offset; qCenter.x -= offset; break;
+	}
+
+	return center;
+}
+
+void OctNode::allocateChildren()
+{
+	float childHalfWidth = halfWidth / 2.0f;
+
+	child[0] = new OctNode(centerForQuadrant(Quadrant::FNE), childHalfWidth);
+	child[1] = new OctNode(centerForQuadrant(FNW), childHalfWidth);
+	child[2] = new OctNode(centerForQuadrant(FSE), childHalfWidth);
+	child[3] = new OctNode(centerForQuadrant(FSW), childHalfWidth);
+	child[4] = new OctNode(centerForQuadrant(BNE), childHalfWidth);
+	child[5] = new OctNode(centerForQuadrant(BNW), childHalfWidth);
+	child[6] = new OctNode(centerForQuadrant(BSE), childHalfWidth);
+	child[7] = new OctNode(centerForQuadrant(BSW), childHalfWidth);
+}
+
+AABB OctNode::aabb()
+{
+	AABB bounds;
+
+	for (Primitive *p : primitives)
+	{
+		AABBContainPrimitive(bounds, *p);
+	}
+
+	return bounds;
+}
+
 OctreeSceneGraphImp::OctreeSceneGraphImp(int treeDepth)
 {
 	maxDepth = treeDepth;
-	root     = new OctNode(); 
+	numNodes = 0;
+	root     = new OctNode();
 }
 
 OctreeSceneGraphImp::~OctreeSceneGraphImp()
@@ -31,20 +79,31 @@ OctreeSceneGraphImp::~OctreeSceneGraphImp()
 
 void OctreeSceneGraphImp::build()
 {
-	std::cout << "building " << std::endl;
-	int i = 0;
-	for (Primitive *p : root->primitives)
-	{
-		i++;
-	}
+	root->center = glm::vec3(0);
+	root->halfWidth = AABBMaxHalfWidth(root->aabb());
 
+	std::cout << " root bounded by " << root->aabb() << std::endl;
+	std::cout << " root halfWidth " << root->halfWidth << std::endl;
 
-	std::cout << i << " tris attached to root " << std::endl;
+	buildOctree_r(root, maxDepth);
+
 }
 
-OctNode* OctreeSceneGraphImp::buildOctree_r(glm::vec3 center,  float halfWidth, int stopDepth)
+void OctreeSceneGraphImp::buildOctree_r(OctNode *n, int stopDepth)
 {
+	if (stopDepth == 0)
+		return;
 
+	std::cout << "stopdepth is " << stopDepth <<  std::endl;
+
+	n->allocateChildren();
+	numNodes += 8;
+	std::cout << "num nodes at  " << numNodes <<  std::endl;
+
+	for(int i = 0; i < 8; i++)
+	{
+		buildOctree_r(n->child[i], stopDepth - 1);
+	}
 }
 
 bool OctreeSceneGraphImp::traceRay(const Ray &r, TraceResult &result) const

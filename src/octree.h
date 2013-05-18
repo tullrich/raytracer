@@ -8,12 +8,23 @@
 
 namespace raytracer {
 
+enum Quadrant
+{
+	FNW, // front-north-west
+	BNW, // back-north-west
+	FNE, // front-north-east
+	BNE, // back-north-east
+	FSW, // front-south-west
+	BSW, // back-south-west
+	FSE, // front-south-east
+	BSE  // back-south-east
+};
 
 /**
  * Stored octree primitive;
  */
 struct OctPrimitive
-{
+{ 
 	Triangle tri;
 	Entity::entity_ptr entity;
 	mesh_data::mesh_ptr mesh;
@@ -27,8 +38,19 @@ struct OctPrimitive
 class OctNode
 {
 public:
+	OctNode(const glm::vec3 &center, float halfWidth) : center(center), halfWidth(halfWidth) {};
+	OctNode() : center(0), halfWidth(0) {};
 	~OctNode();
+
 	void append(Primitive *prim);
+	glm::vec3  centerForQuadrant(Quadrant quadrent);
+	void allocateChildren();
+
+	/**
+	 * Compute a bounding box containing all of the primitives attached to this node
+	 * @return the aabb
+	 */
+	AABB aabb();
 
 	glm::vec3 center;
 	float halfWidth;
@@ -52,7 +74,7 @@ public:
 	 * @return        true if this trace collided with something
 	 */
 	virtual bool traceRay(const Ray &r, TraceResult &result) const;
-
+	 
 	/**
 	 * Temporarily attaches all entities to the root until build() is
 	 * next called
@@ -66,14 +88,17 @@ public:
 	 */
 	virtual void build();
 
-	OctNode* buildOctree_r(glm::vec3 center,  float halfWidth, int stopDepth);
-
 private:
+
+	void buildOctree_r(OctNode *n, int stopDepth);
+
+
 	std::list<Entity::entity_ptr> allEntities; // list of all entities, not used for ray trace calculations
 
 	OctNode *root;
 
 	int maxDepth;
+	int numNodes;
 };
 
 
