@@ -4,6 +4,7 @@
 #include <list>
 #include "common.h"
 #include "scenegraph.h"
+#include "primitive.h"
 
 namespace raytracer {
 
@@ -27,12 +28,12 @@ class OctNode
 {
 public:
 	~OctNode();
-	void append(OctPrimitive *prim);
+	void append(Primitive *prim);
 
 	glm::vec3 center;
 	float halfWidth;
 	OctNode *child[8];
-	OctPrimitive *head;
+	std::list<Primitive*> primitives;
 };
 
 /**

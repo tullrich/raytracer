@@ -13,20 +13,9 @@ OctNode::~OctNode()
 	}
 }
 
-void OctNode::append(OctPrimitive *prim)
+void OctNode::append(Primitive *prim)
 {
-	if(head == NULL )
-	{
-		head = prim;
-		return;
-	}
-
-	OctPrimitive *tail = head;
-	while (tail->next != NULL)
-	{
-		tail = tail->next;
-	}
-	tail->next = prim;
+	primitives.push_back(prim);
 }
 
 OctreeSceneGraphImp::OctreeSceneGraphImp(int treeDepth)
@@ -43,11 +32,9 @@ OctreeSceneGraphImp::~OctreeSceneGraphImp()
 void OctreeSceneGraphImp::build()
 {
 	std::cout << "building " << std::endl;
-	OctPrimitive *current = root->head;
 	int i = 0;
-	while (current != NULL)
+	for (Primitive *p : root->primitives)
 	{
-		current = current->next;
 		i++;
 	}
 
@@ -69,33 +56,19 @@ void OctreeSceneGraphImp::addEntity(Entity::entity_ptr entity)
 {
 	allEntities.push_back(entity);
 
-	OctPrimitive *first = NULL;
-	OctPrimitive *last = NULL;
-
 	for(mesh_data::mesh_ptr mesh : entity->meshes)
 	{
 		for(int i = 0; i < mesh->numFaces; i++)
 		{
 			const prim_tri *indices = &mesh->faces[i];
 
-			OctPrimitive *fresh = new OctPrimitive();
-			fresh->tri = Triangle(mesh->verts[indices->x], mesh->verts[indices->y], mesh->verts[indices->z]);
-			fresh->mesh = mesh;
-			fresh->entity = entity;
+			Triangle t(mesh->verts[indices->x], mesh->verts[indices->y], mesh->verts[indices->z]);
+			Primitive *fresh = new TrianglePrimitive(t, mesh->mat);
 
-			if (first != NULL)
-			{
-				last->next = fresh;
-				last = fresh;
-			}
-			else
-			{
-				first = last = fresh;
-			}
+			root->append(fresh);
 		}
 	}
 
-	root->append(first);
 }
 
 } /* namespace raytracer */

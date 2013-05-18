@@ -12,7 +12,9 @@ namespace raytracer {
  */
 class Primitive
 {
-	virtual bool intersects(const Ray &r,  TraceResult &result) = 0;
+public:
+	Primitive() {};
+	virtual bool intersects(const Ray &r,  TraceResult &result) const = 0;
 };
 
 /**
@@ -21,12 +23,12 @@ class Primitive
 class TrianglePrimitive : public Primitive
 {
 public:
-	TrianglePrimitive(const Triangle &face, const Material *material) : face(face), material(material) {};d
-	virtual bool intersects(const Ray &r,  TraceResult &result);
+	TrianglePrimitive(const Triangle &face, const Material *material) : face(face), material(material) {};
+	virtual bool intersects(const Ray &r,  TraceResult &result) const;
 
 protected:
 	Triangle face;
-	Material *mesh;
+	const Material *material;
 };
 
 } /* raytracer */
