@@ -39,9 +39,14 @@ glm::vec3 OctNode::centerForQuadrant(Quadrant q)
 	return center;
 }
 
-bool OctNode::isLeaf()
+bool OctNode::isLeaf() const
 {
 	return child[0] != NULL;
+}
+
+void OctNode::pushDown()
+{
+
 }
 
 void OctNode::allocateChildren()
@@ -57,6 +62,7 @@ void OctNode::allocateChildren()
 	child[6] = new OctNode(centerForQuadrant(BSE), childHalfWidth);
 	child[7] = new OctNode(centerForQuadrant(BSW), childHalfWidth);
 }
+
 
 AABB OctNode::aabb()
 {
@@ -91,7 +97,7 @@ void OctreeSceneGraphImp::build()
 	std::cout << " root halfWidth " << root->halfWidth << std::endl;
 
 	buildOctree_r(root, maxDepth);
-
+	pushDown_r(root);
 }
 
 void OctreeSceneGraphImp::buildOctree_r(OctNode *n, int stopDepth)
@@ -108,6 +114,19 @@ void OctreeSceneGraphImp::buildOctree_r(OctNode *n, int stopDepth)
 	for(int i = 0; i < 8; i++)
 	{
 		buildOctree_r(n->child[i], stopDepth - 1);
+	}
+}
+
+void OctreeSceneGraphImp::pushDown_r(OctNode *n)
+{
+	if(n->isLeaf())
+		return;
+
+	n->pushDown();
+
+	for(int i = 0; i < 8; i++)
+	{
+		pushDown_r(n->child[i]);
 	}
 }
 

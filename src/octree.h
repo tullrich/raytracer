@@ -43,8 +43,9 @@ public:
 	~OctNode();
 
 	void append(Primitive *prim);
-	bool isLeaf();
-	glm::vec3  centerForQuadrant(Quadrant quadrent);
+	bool isLeaf() const; 
+	void pushDown();
+	glm::vec3 centerForQuadrant(Quadrant quadrent);
 	void allocateChildren();
 
 	/**
@@ -75,7 +76,7 @@ public:
 	 * @return        true if this trace collided with something
 	 */
 	virtual bool traceRay(const Ray &r, TraceResult &result) const;
-	 
+
 	/**
 	 * Temporarily attaches all entities to the root until build() is
 	 * next called
@@ -92,6 +93,7 @@ public:
 private:
 
 	void buildOctree_r(OctNode *n, int stopDepth);
+	void pushDown_r(OctNode *n);
 
 
 	std::list<Entity::entity_ptr> allEntities; // list of all entities, not used for ray trace calculations
