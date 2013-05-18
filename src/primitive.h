@@ -1,6 +1,7 @@
 #ifndef _PRIMITIVE_H_
 #define _PRIMITIVE_H_ 
 
+#include <list>
 #include "common.h"
 #include "ray.h"
 
@@ -20,14 +21,13 @@ class Primitive
 class TrianglePrimitive : public Primitive
 {
 public:
-
+	TrianglePrimitive(const Triangle &face, const Material *material) : face(face), material(material) {};d
 	virtual bool intersects(const Ray &r,  TraceResult &result);
 
+protected:
 	Triangle face;
-	Entity::entity_ptr entity;
-	mesh_data::mesh_ptr mesh;
+	Material *mesh;
 };
-
 
 } /* raytracer */
 

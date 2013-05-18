@@ -62,7 +62,6 @@ bool ButeForceSceneGraphImp::traceRay(const Ray &r, TraceResult &result) const
 			if(temp_t == -1 || temp_result.intersection.w < result.intersection.w)
 			{
 				result = temp_result;
-				result.entity = entity;
 				temp_t = result.intersection.w;
 			}
 		}
