@@ -84,7 +84,7 @@ private:
 
 	void buildOctree_r(OctNode *n, int stopDepth);
 	void pushDown_r(OctNode *n);
-
+	int optimalRootWidth();
 
 	std::list<Entity::entity_ptr> allEntities; // list of all entities, not used for ray trace calculations
 

@@ -91,13 +91,24 @@ OctreeSceneGraphImp::~OctreeSceneGraphImp()
 void OctreeSceneGraphImp::build()
 {
 	root->center = glm::vec3(0);
-	root->halfWidth = AABBMaxHalfWidth(root->aabb());
+	root->halfWidth = optimalRootWidth();
 
-	std::cout << " root bounded by " << root->aabb() << std::endl;
 	std::cout << " root halfWidth " << root->halfWidth << std::endl;
 
 	buildOctree_r(root, maxDepth);
 	pushDown_r(root);
+}
+
+int OctreeSceneGraphImp::optimalRootWidth()
+{
+	AABB bounds;
+
+	for (Primitive *p : root->primitives)
+	{
+		AABBContainPrimitive(bounds, *p);
+	}
+
+	return AABBMaxHalfWidth(bounds);
 }
 
 void OctreeSceneGraphImp::buildOctree_r(OctNode *n, int stopDepth)
