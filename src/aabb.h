@@ -12,11 +12,12 @@ class Primitive; // forward declaration
 /**
  * Axially aligned bounding box
  */
-typedef struct 
+struct AABB
 {
+	AABB() : max(0), min(0) {};
 	vec3 max;
 	vec3 min;
-} AABB;
+};
 
 /**
  * Grow aabb to contain vertex
@@ -60,6 +61,16 @@ void AABBContainPrimitive(AABB &aabb, const Primitive &primitive);
  * @return      halfwidth, always >= 0
  */
 float AABBMaxHalfWidth(const AABB &aabb);
+
+
+/**
+ * Test if aabb intersects the plane given by the plane equation dot(X, n) = d
+ * This is done via a separating axis test w/ p.n
+ * @param  aabb the AABB
+ * @param  p    the plane
+ * @return      true if the AABB intersects the plane, false otherwise
+ */
+bool AABBintersectsPlane(const AABB &aabb, const Plane &p);
 
 /**
  * Insert stream operator for AABB

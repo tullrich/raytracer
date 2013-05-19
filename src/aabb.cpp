@@ -52,6 +52,19 @@ float AABBMaxHalfWidth(const AABB &aabb)
 	return fmax(dx, fmax(dy, dz));
 }
 
+bool AABBintersectsPlane(const AABB &aabb, const Plane &p)
+{
+	glm::vec3 c = (aabb.max - aabb.min) * 0.5f; // aabb center
+	glm::vec3 e = aabb.max - c; // aabb extents
+
+	// max radius on separating axis, n
+	float r = e.x * abs(p.n.x) + e.y * abs(p.n.y) + e.z + abs(p.n.z); 
+	// distance along separating axis between aabb center and the plane
+	float s = abs(dot(c, p.n) - p.d);
+
+	// if s <= r, the box must be overlapping the plane
+	return s <= r;
+}
 
 
 std::ostream& operator<<(std::ostream& o, const AABB& b)
