@@ -44,6 +44,18 @@ public:
 	glm::vec3 intersectionToPoint(glm::vec4 &intersection);
 };
 
+
+/**
+ * A plane representing all points X s.t. dot(X, n) = d
+ */
+struct Plane
+{
+	Plane() : n(0), d(0) {};
+
+	float d;
+	glm::vec3 n;
+};
+
 glm::vec3 adjustFloatingPointToward(const glm::vec3 point, const glm::vec3 &towards);
 
 inline float clamp(float x, float a, float b)
