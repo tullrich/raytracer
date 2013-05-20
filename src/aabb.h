@@ -15,6 +15,7 @@ class Primitive; // forward declaration
 struct AABB
 {
 	AABB() : max(0), min(0) {};
+	AABB(const glm::vec3 &max, const glm::vec3 &min) : max(max), min(min) {};
 	vec3 max;
 	vec3 min;
 };
@@ -62,7 +63,6 @@ void AABBContainPrimitive(AABB &aabb, const Primitive &primitive);
  */
 float AABBMaxHalfWidth(const AABB &aabb);
 
-
 /**
  * Test if aabb intersects the plane given by the plane equation dot(X, n) = d
  * This is done via a separating axis test w/ p.n
@@ -71,6 +71,14 @@ float AABBMaxHalfWidth(const AABB &aabb);
  * @return      true if the AABB intersects the plane, false otherwise
  */
 bool AABBintersectsPlane(const AABB &aabb, const Plane &p);
+
+/**
+ * Test if aabb intersects the Triangle t
+ * @param  aabb the AABB
+ * @param  t    the Triangle
+ * @return      true if the AABB intersects the triangle, false otherwise
+ */
+bool AABBintersectsTriangle(const AABB &aabb, const Triangle &t);
 
 /**
  * Insert stream operator for AABB

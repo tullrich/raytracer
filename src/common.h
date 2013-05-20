@@ -23,6 +23,8 @@ namespace raytracer {
 #define OPTION_OUTPATH "o"
 #define OPTION_ASSETPATH "asset-filepath"
 
+#define FLOAT_ERROR 0.0001f
+
 typedef glm::vec3 RGB;
 
 class Triangle 
