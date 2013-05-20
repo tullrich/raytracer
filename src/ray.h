@@ -58,6 +58,8 @@ public:
 	bool intersects(const AABB &aabb, glm::vec3 &result) const;
 };
 
+std::ostream& operator<<(std::ostream& o, const Ray& b);
+
 } /* raytracer */
 
 #endif /* _RAY_H_ */

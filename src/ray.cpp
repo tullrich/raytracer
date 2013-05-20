@@ -105,7 +105,7 @@ bool Ray::intersects(const AABB &a, glm::vec3 &result) const
 			if (t1 > tmin)
 				tmin = t1;	// furtherst intersection from a "close" plane
 
-			if (t2 > tmax)
+			if (t2 < tmax)
 				tmax = t2; // furtherst intersection from a "far" plane
 
 			if (tmin > tmax)
@@ -116,5 +116,15 @@ bool Ray::intersects(const AABB &a, glm::vec3 &result) const
 	result = p + tmin * n;
 	return true;
 }
+
+std::ostream& operator<<(std::ostream& o, const Ray& b)
+{
+	return o << "Ray {\n" \
+		<< "\tp: " << b.p << "\n" \
+		<< "\tq:" << b.q << "\n" \
+		<< "\tn:" << b.n << "\n" \
+		<< "}";
+}
+
 
 } /* namespace raytracer */
