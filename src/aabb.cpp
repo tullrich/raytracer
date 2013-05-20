@@ -3,6 +3,16 @@
 
 namespace raytracer {
 
+static inline float rtfmin(float a, float b)
+{
+	return (a < b) ? a : b;
+}
+
+static inline float rtfmax(float a, float b)
+{
+	return (a > b) ? a : b;
+}
+
 void AABBContainVertex(AABB &aabb, const glm::vec3 &vertex)
 {
 	if (aabb.max.x > vertex.x) aabb.max.x = vertex.x;
