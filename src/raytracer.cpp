@@ -14,27 +14,23 @@ Raytracer::~Raytracer()
 {
 }
 
-bool Raytracer::computeLightAt(const Material &mat, const glm::vec3 point, RGB &color)
+bool Raytracer::computeLightAt(const Material &mat, const Triangle &tri, const glm::vec4 intersection, RGB &color)
 {
     RGB per_light(0);
+    TraceResult result;
+    glm::vec3 N = tri.normal();
+    glm::vec3 point = adjustFloatingPointToward(tri.intersectionToPoint(intersection), N);
 
     for (Light::light_ptr light : scene->lights)
     {
-        float d = 0.0f;
-        //std::cout << *light << std::endl;
-        if (scene->testVisibility(point, light->position, d))
+        if (scene->testVisibility(point, light->position, result))
         {
+            glm::vec3 incident_direction = glm::vec3(light->position - point);
+            float d = glm::length(incident_direction);
             light->getAttenuatedRadiance(point, d, per_light);
-            //std::cout << "per light distance " << d << std::endl;
-            color += per_light * mat.diffuse;
 
-            //std::cout << "distance to light " << d << std::endl;
-
-            //color = color * result.mat->diffuse; // TAKE THIS OUT
-        }
-        else
-        {
-            //color = RGB(1, 1, 0);
+            glm::vec3 I = glm::normalize(incident_direction);
+            color += per_light * mat.diffuse * fmaxf(glm::dot(N, I), 0);
         }
     }
 }
@@ -48,6 +44,7 @@ void Raytracer::rayForPixel(int x, int y, Ray &r) const
     camera->getPixelCenter(x, y, img.width, img.height, pixel_center);
 
     r = Ray(camera->eye, pixel_center);
+    //r = Ray(camera->eye, glm::vec3(0, 0, 0));
 }
 
 
@@ -76,8 +73,7 @@ void Raytracer::trace()
                     once = true;
                 }
 
-                glm::vec3 surfacePoint = adjustFloatingPointToward(result.tri.intersectionToPoint(result.intersection), r.q);
-                if(computeLightAt(*(result.material), surfacePoint, color))
+                if(computeLightAt(*(result.material), result.tri, result.intersection, color))
                 {
 
                     //std::cout << "distance to light " << result.-> << std::endl;
@@ -92,13 +88,6 @@ void Raytracer::trace()
             }
         }
     }
-
-    for (Light::light_ptr light : scene->lights)
-    {
-        std::cout << *light << std::endl;
-    }
-
-   std::cout << "num meshes " << MeshManager::getInstance().size() << std::endl;
 
     if (!img.writeOut(outpath))
     {
