@@ -17,10 +17,9 @@ void SceneGraph::addLight(Light::light_ptr light)
 }
 
 
-bool SceneGraph::testVisibility(const glm::vec3 &point1, const glm::vec3 &point2, float &distance) const
+bool SceneGraph::testVisibility(const glm::vec3 &point1, const glm::vec3 &point2, TraceResult &result) const
 {
 	Ray r(point1, point2);
-	TraceResult result;
 	float d = glm::length(point2 - point1);
 
 	if (traceRay(r, result))
@@ -33,8 +32,7 @@ bool SceneGraph::testVisibility(const glm::vec3 &point1, const glm::vec3 &point2
 			return false;
 		}
 	}
-
-	distance = d;
+	
 	return true;
 }
 
@@ -73,7 +71,7 @@ bool ButeForceSceneGraphImp::traceRay(const Ray &r, TraceResult &result) const
 SceneGraph* SceneGraphFactory::getSceneGraph()
 {
 	// preset for now
-	return new OctreeSceneGraphImp(5);
+	return new OctreeSceneGraphImp(8);
 }
 
 
