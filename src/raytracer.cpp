@@ -133,16 +133,20 @@ std::ostream& operator<<(std::ostream& o, const Triangle& b)
     return  o << "Triangle {" << b.A << ", " << b.B << ", " << b.C << " }";
 }
 
-glm::vec3 Triangle::intersectionToPoint(glm::vec4 &intersection)
+glm::vec3 Triangle::intersectionToPoint(const glm::vec4 &intersection) const
 {
     return intersection.x * A + intersection.y * B + intersection.z * C;
 }
 
-
-
-glm::vec3 adjustFloatingPointToward(const glm::vec3 point, const glm::vec3 &towards)
+glm::vec3 Triangle::normal() const
 {
-    glm::vec3 n = towards - point;
+    return glm::normalize(glm::cross(B - A, C - A));
+}
+
+
+glm::vec3 adjustFloatingPointToward(const glm::vec3 point, const glm::vec3 &n)
+{
+    //glm::vec3 n = towards - point;
 
     return point + .00001f * n;
 }

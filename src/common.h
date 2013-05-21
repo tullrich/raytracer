@@ -43,7 +43,9 @@ public:
 	 * @param  intersection barycentric coordinates, |intersection| = 1.0
 	 * @return              intersection point on the surface of this triangle
 	 */
-	glm::vec3 intersectionToPoint(glm::vec4 &intersection);
+	glm::vec3 intersectionToPoint(const glm::vec4 &intersection) const;
+
+	glm::vec3 normal()  const;
 };
 
 
