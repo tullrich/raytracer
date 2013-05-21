@@ -206,11 +206,14 @@ static SceneGraph* buildScene(const po::variables_map &vm, Camera* &cam)
 
     for (string filename : assetpaths)
     {
-        cout << "Processing assetfile: " << filename << endl;
+        cout << "Processing assetfile " << filename << "... " << std::flush;
         addToScene(injector, filename, cam);
+        cout << "done" << endl;
     }
 
+    cout << "Building scene... " << std::flush;
     scene->build();
+    cout << "done" << endl;
 
     return scene;
 }
@@ -236,11 +239,9 @@ int main(int argc, char *argv[])
 
     if (cam == NULL)
     {
-        cout << "in here" << endl;
         cam = new Camera();
     }
 
-    std::cout << *cam << std::endl;
     tracer->setCamera(cam);
 
     light = new PointLight("custom");
@@ -249,27 +250,10 @@ int main(int argc, char *argv[])
     light->setAttenuation(1.0f, 0.01f, 0.01f);
     scene->addLight(Light::light_ptr(light));
 
+    cout << "Tracing scene... " << std::flush;
     tracer->trace();
-/*
-    Triangle tri(glm::vec3(0, 0, 0), glm::vec3(2, 0, 2), glm::vec3(2, 0 , -2));
-    Ray r(glm::vec3(6, 0, .5), glm::vec3(5, 0, .5));
+    cout << "done" << endl;
 
-    vec4 intersection;
-    //if (r.intersects(tri, intersection))
-    if(scene->traceRay(r, intersection, tri))
-    {
-        std::cout << "intersects tri" << tri << " at " << tri.intersectionToPoint(intersection) << std::endl;
-    }
-
-    Ray r2(glm::vec3(5.02830, 0, .75), glm::vec3(6.02830, 0, .75));
-
-    //if (r.intersects(tri, intersection))
-    if(scene->traceRay(r2, intersection, tri))
-    {
-        std::cout << "2intersects at " << tri.intersectionToPoint(intersection) << std::endl;
-    }
-
-    */
 
     delete tracer;
     delete scene;
