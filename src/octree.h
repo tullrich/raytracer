@@ -10,14 +10,14 @@ namespace raytracer {
 
 enum Quadrant
 {
-	FNW, // front-north-west
-	BNW, // back-north-west
-	FNE, // front-north-east
-	BNE, // back-north-east
-	FSW, // front-south-west
-	BSW, // back-south-west
-	FSE, // front-south-east
-	BSE  // back-south-east
+	BSW = 0, // back-south-west
+	FSW = 1, // front-south-west
+	BNW = 2, // back-north-west
+	FNW = 3, // front-north-west
+	BSE = 4,  // back-south-east
+	FSE = 5, // front-south-east
+	BNE = 6, // back-north-east
+	FNE = 7 // front-north-east
 };
 
 
@@ -28,8 +28,8 @@ enum Quadrant
 class OctNode
 {
 public:
-	OctNode(const glm::vec3 &center, float halfWidth) : center(center), halfWidth(halfWidth) {};
-	OctNode() : center(0), halfWidth(0) {};
+	OctNode(const glm::vec3 &center, float halfWidth) : center(center), halfWidth(halfWidth), primitives(), child{NULL} {};
+	OctNode() : center(0), halfWidth(0), primitives(), child{NULL} {};
 	~OctNode();
 
 	void append(Primitive *prim);
@@ -37,12 +37,14 @@ public:
 	void pushDown();
 	glm::vec3 centerForQuadrant(Quadrant quadrent);
 	void allocateChildren();
+	bool testPrimitives(const Ray &r, TraceResult &result);
+	bool traceRay(const Ray &r, TraceResult &result, float tx0,float ty0, float tz0, float tx1, float ty1, float tz1, unsigned char a);
 
 	/**
 	 * Compute a bounding box containing all of the primitives attached to this node
 	 * @return the aabb
 	 */
-	AABB aabb();
+	void aabb(AABB &aabb);
 
 	glm::vec3 center;
 	float halfWidth;
@@ -84,7 +86,7 @@ private:
 
 	void buildOctree_r(OctNode *n, int stopDepth);
 	void pushDown_r(OctNode *n);
-	int optimalRootWidth();
+	float optimalRootWidth();
 
 	std::list<Entity::entity_ptr> allEntities; // list of all entities, not used for ray trace calculations
 

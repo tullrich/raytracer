@@ -36,44 +36,246 @@ glm::vec3 OctNode::centerForQuadrant(Quadrant q)
 		case BSW : qCenter.z -= offset; qCenter.y -= offset; qCenter.x -= offset; break;
 	}
 
-	return center;
+	return qCenter;
 }
 
 bool OctNode::isLeaf() const
 {
-	return child[0] != NULL;
+	return child[0] == NULL;
 }
 
 void OctNode::pushDown()
 {
+	AABB childAABB;
+	int *count = new int[primitives.size()]();
 
+	for (int i = 0; i < 8; i++)
+	{
+		int j = 0;
+		//bool  = false;
+		child[i]->aabb(childAABB);
+		for(Primitive *p : primitives)
+		{
+			if(p->intersects(childAABB))
+			{
+				count[j] += 1;
+				child[i]->append(p);
+			}
+			j++;
+		}
+		//if(child[i]->primitives.size() > 0)
+		//std::cout << "gave child " << i << " " << child[i]->primitives.size() << " primitives " << std::endl; 
+	}
+	int n = 0;
+	int i = 0;
+	for (Primitive *p : primitives)
+	{
+		if(count[i] <= 0)
+		{
+			n++;
+			//std::cout << "broken primitive " << reinterpret_cast<TrianglePrimitive*>(p)->face << std::endl; 
+		}
+		i++;
+	}
+	delete count;
+	//CGUTILS_ASSERT(n == 0); // if we didnt overlap >=1 child, its a bug
+	primitives.clear();
+	
 }
 
 void OctNode::allocateChildren()
 {
 	float childHalfWidth = halfWidth / 2.0f;
 
-	child[0] = new OctNode(centerForQuadrant(Quadrant::FNE), childHalfWidth);
-	child[1] = new OctNode(centerForQuadrant(FNW), childHalfWidth);
-	child[2] = new OctNode(centerForQuadrant(FSE), childHalfWidth);
-	child[3] = new OctNode(centerForQuadrant(FSW), childHalfWidth);
-	child[4] = new OctNode(centerForQuadrant(BNE), childHalfWidth);
-	child[5] = new OctNode(centerForQuadrant(BNW), childHalfWidth);
-	child[6] = new OctNode(centerForQuadrant(BSE), childHalfWidth);
-	child[7] = new OctNode(centerForQuadrant(BSW), childHalfWidth);
+	child[BSW] = new OctNode(centerForQuadrant(BSW), childHalfWidth);
+	child[FSW] = new OctNode(centerForQuadrant(FSW), childHalfWidth);
+	child[BNW] = new OctNode(centerForQuadrant(BNW), childHalfWidth);
+	child[FNW] = new OctNode(centerForQuadrant(FNW), childHalfWidth);
+	child[BSE] = new OctNode(centerForQuadrant(BSE), childHalfWidth);
+	child[FSE] = new OctNode(centerForQuadrant(FSE), childHalfWidth);
+	child[BNE] = new OctNode(centerForQuadrant(BNE), childHalfWidth);
+	child[FNE] = new OctNode(centerForQuadrant(FNE), childHalfWidth);
 }
 
 
-AABB OctNode::aabb()
+void OctNode::aabb(AABB &aabb)
 {
-	AABB bounds;
-
-	for (Primitive *p : primitives)
+	for (int i = 0; i < 3; i++)
 	{
-		AABBContainPrimitive(bounds, *p);
+		aabb.max[i] = center[i] + halfWidth;
+		aabb.min[i] = center[i] - halfWidth;
+	}
+}
+
+bool OctNode::testPrimitives(const Ray &r, TraceResult &result)
+{
+	TraceResult temp_result;
+	bool found_one = false;
+
+	for(Primitive *p : primitives)
+	{
+		if(p->intersects(r, temp_result))
+		{
+			if (!found_one || temp_result.intersection.w < result.intersection.w)
+			{
+				found_one = true;
+				result = temp_result;
+			}
+		}
+	}
+	//std::cout << "got here    found " << found_one << std::endl; 
+	return found_one;
+}
+
+static unsigned char first_node(float tx0, float ty0, float tz0, float txm, float tym, float tzm)
+{
+	unsigned char ret_value = 0;
+	float compare = fmaxf(tx0, fmaxf(ty0, tz0));
+
+	if(tx0 == compare) // entry plane YZ
+	{
+		if(tym < tx0) ret_value |= 2;
+		if(tzm < tx0) ret_value |= 1;
+	}
+	else if(ty0 == compare) // entry plane XZ
+	{
+		if(txm < ty0) ret_value |= 4;
+		if(tzm < ty0) ret_value |= 1;
+	} 
+	else // entry plane XY
+	{
+		if(txm < tz0) ret_value |= 4;
+		if(tym < tz0) ret_value |= 2;
 	}
 
-	return bounds;
+	return ret_value;
+}
+
+static unsigned char next_node(float txm, unsigned char next_in_x, float tym, unsigned char next_in_y, float tzm, unsigned char next_in_z)
+{
+	float compare = fminf(txm, fminf(tym, tzm));
+
+	if(txm == compare) // exit plane YZ
+	{
+		return next_in_x;
+	}
+	else if(tym == compare) // exit plane XZ
+	{
+		return next_in_y;
+	} 
+	else // exit plane XY
+	{
+		return next_in_z;
+	}
+}
+
+bool OctNode::traceRay(const Ray &r, TraceResult &result, float tx0,float ty0, float tz0, float tx1, float ty1, float tz1, unsigned char a)
+{
+	if (tx1 < 0.0f || ty1 < 0.0f || tz1 < 0.0f)
+	{
+		return false;
+	}
+
+	if(isLeaf())
+	{
+		//std::cout << " in a child " << std::endl; 
+		return testPrimitives(r, result);
+	}
+	//std::cout << " in a parent " << std::endl; 
+
+	float txm = 0.5f * (tx0 + tx1); // t value when the ray intersects the x-axis of this node
+	float tym = 0.5f * (ty0 + ty1); // t value when the ray intersects the y-axis of this node
+	float tzm = 0.5f * (tz0 + tz1); // t value when the ray intersects the z-axis of this node
+
+	unsigned char currNode = first_node(tx0, ty0, tz0, txm, tym, tzm);
+	do
+	{
+		switch(currNode)
+		{
+			case 0 :
+			{
+				if(child[BSW ^ a]->traceRay(r, result, tx0, ty0, tz0, txm, tym, tzm, a)) // back - south - west
+				{
+					return true;
+				}
+				currNode = next_node(txm, 4, tym, 2, tzm, 1);
+				//currNode = new_node()
+				break;
+			}
+			case 1 :
+			{
+				if(child[FSW ^ a]->traceRay(r, result, tx0, ty0, tzm, txm, tym, tz1, a)) // front - south - west
+				{
+					return true;
+				}
+				currNode = next_node(txm, 5, tym, 3, tz1, 8);
+				//currNode = new_node()
+				break;
+			}
+			case 2 :
+			{
+				if(child[BNW ^ a]->traceRay(r, result, tx0, tym, tz0, txm, ty1, tzm, a)) // back - north - west
+				{
+					return true;
+				}
+				currNode = next_node(txm, 6, ty1, 8, tzm, 3);
+				//currNode = new_node()
+				break;
+			}
+			case 3 :
+			{
+				if(child[FNW ^ a]->traceRay(r, result, tx0, tym, tzm, txm, ty1, tz1, a)) // front - north - west
+				{
+					return true;
+				}
+				currNode = next_node(txm, 7, ty1, 8, tz1, 8);
+				//currNode = new_node()
+				break;
+			}
+			case 4 :
+			{
+				if(child[BSE ^ a]->traceRay(r, result, txm, ty0, tz0, tx1, tym, tzm, a)) // back - south - east
+				{
+					return true;
+				}
+				currNode = next_node(tx1, 8, tym, 6, tzm, 5);
+				//currNode = new_node()
+				break;
+			}
+			case 5 :
+			{
+				if(child[FSE ^ a]->traceRay(r, result, txm, ty0, tzm, tx1, tym, tz1, a)) // front - south - east
+				{
+					return true;
+				}
+				currNode = next_node(tx1, 8, tym, 7, tz1, 8);
+				//currNode = new_node()
+				break;
+			}
+			case 6 :
+			{
+				if(child[BNE ^ a]->traceRay(r, result, txm, tym, tz0, tx1, ty1, tzm, a)) // back - north - east
+				{
+					return true;
+				}
+				currNode = next_node(tx1, 8, ty1, 8, tzm, 7);
+				//currNode = new_node()
+				break;
+			}
+			case 7 :
+			{
+				if(child[FNE ^ a]->traceRay(r, result, txm, tym, tzm, tx1, ty1, tz1, a)) // front - north - east
+				{
+					return true;
+				}
+				currNode = 8;
+				//currNode = new_node()
+				break;
+			}
+		}
+	} while(currNode < 8);
+
+	return false;
 }
 
 OctreeSceneGraphImp::OctreeSceneGraphImp(int treeDepth)
@@ -91,15 +293,13 @@ OctreeSceneGraphImp::~OctreeSceneGraphImp()
 void OctreeSceneGraphImp::build()
 {
 	root->center = glm::vec3(0);
-	root->halfWidth = optimalRootWidth();
-
-	std::cout << " root halfWidth " << root->halfWidth << std::endl;
+	root->halfWidth = optimalRootWidth() + 1.0f;
 
 	buildOctree_r(root, maxDepth);
 	pushDown_r(root);
 }
 
-int OctreeSceneGraphImp::optimalRootWidth()
+float OctreeSceneGraphImp::optimalRootWidth()
 {
 	AABB bounds;
 
@@ -116,11 +316,8 @@ void OctreeSceneGraphImp::buildOctree_r(OctNode *n, int stopDepth)
 	if (stopDepth == 0)
 		return;
 
-	std::cout << "stopdepth is " << stopDepth <<  std::endl;
 
 	n->allocateChildren();
-	numNodes += 8;
-	std::cout << "num nodes at  " << numNodes <<  std::endl;
 
 	for(int i = 0; i < 8; i++)
 	{
@@ -143,7 +340,75 @@ void OctreeSceneGraphImp::pushDown_r(OctNode *n)
 
 bool OctreeSceneGraphImp::traceRay(const Ray &r, TraceResult &result) const
 {
+	unsigned char a = 0;
+	Ray mod_r = r;
 
+/*	static bool doOnce = true;
+	if (!doOnce)
+		return false;
+	doOnce = false;*/
+
+	if(r.n.x < 0)
+	{
+		mod_r.p.x = -mod_r.p.x;
+		mod_r.n.x = -mod_r.n.x;
+		a |= 4;
+	}
+
+	if(r.n.y < 0)
+	{
+		mod_r.p.y =  -mod_r.p.y;
+		mod_r.n.y = -mod_r.n.y;
+		a |= 2;
+	}
+
+	if(r.n.z < 0)
+	{
+		mod_r.p.z = -mod_r.p.z;
+		mod_r.n.z = -mod_r.n.z;
+		a |= 1;
+	}
+
+
+	AABB root_bounds;
+	root->aabb(root_bounds);
+
+/*	if(root_bounds.min.x < 0)
+	{
+		mod_r.p.x = root_bounds.min.x - mod_r.p.x;
+		root_bounds.max.x = root_bounds.min.x - root_bounds.max.x;
+		root_bounds.min.x = 0;
+	}
+
+	if(root_bounds.min.y < 0)
+	{
+		mod_r.p.y = root_bounds.min.y - mod_r.p.y;
+		root_bounds.max.y = root_bounds.min.y - root_bounds.max.y;
+		root_bounds.min.y = 0;
+	}
+
+	if(root_bounds.min.z < 0)
+	{
+		mod_r.p.z = root_bounds.min.z - mod_r.p.z;
+		root_bounds.max.z = root_bounds.min.z - root_bounds.max.z;
+		root_bounds.min.z = 0;
+	}*/
+
+	float tx0 = (root_bounds.min.x - mod_r.p.x) / mod_r.n.x; // entry t on x-axis
+	float tx1 = (root_bounds.max.x - mod_r.p.x) / mod_r.n.x; // exit t on x-axis
+	float ty0 = (root_bounds.min.y - mod_r.p.y) / mod_r.n.y; // entry t on y-axis
+	float ty1 = (root_bounds.max.y - mod_r.p.y) / mod_r.n.y; // exit t on y-axis
+	float tz0 = (root_bounds.min.z - mod_r.p.z) / mod_r.n.z; // entry t on z-axis
+	float tz1 = (root_bounds.max.z - mod_r.p.z) / mod_r.n.z; // exit t on z-axis
+
+	float max = fmaxf(tx0, fmaxf(ty0, tz0)); // earliest we are through all entry planes
+	float min = fminf(tx1, fminf(ty1, tz1)); // latest we are inside all exist planes
+	if(fmaxf(tx0, fmaxf(ty0, tz0)) < fminf(tx1, fminf(ty1, tz1)))
+	{
+		return root->traceRay(r, result, tx0, ty0, tz0, tx1, ty1, tz1, a);
+	}
+
+	return false;
 }
 
 void OctreeSceneGraphImp::addEntity(Entity::entity_ptr entity)
