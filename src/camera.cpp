@@ -7,7 +7,7 @@ namespace raytracer {
 Camera::Camera()
 {
 	this->eye       = glm::vec3(20.0f, 20.0f, 20.0f); //  position; // 
-	this->lookAt    = glm::vec3(0.0f, 0.0f, 0.0f); // lookAt; // 
+	this->lookAt    = glm::vec3(0.0f, 2.0f, 0.0f); // lookAt; // 
 	this->up        = glm::vec3(0.0f, 1.0f, 0.0f); // up; // 
 	
 	this->nearPlane = 1.0f;
@@ -60,14 +60,6 @@ void Camera::getPixelCenter(int i, int j, int x_res, int y_res, glm::vec3 &out)
 	glm::vec4 pixel_center(center_x_i, center_y_j, -1.0f, 1.0f);
 
 	out = glm::vec3(cameraToWorld * pixel_center);
-
-	if(i == 3 && j == 3)
-	{
-		std::cout << "pixel_x " << pixel_x << std::endl;
-		std::cout << "center_x_i " << center_x_i << std::endl;
-		std::cout << "center_y_j " << center_y_j << std::endl;
-		std::cout << "out " << out << std::endl;
-	}
 
 }
 
