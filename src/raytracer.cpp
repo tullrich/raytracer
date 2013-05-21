@@ -1,5 +1,6 @@
 #include "raytracer.h"
 #include <math.h>
+#include <ctime>
 
 using namespace cgutils;
 
@@ -8,6 +9,7 @@ namespace raytracer {
 Raytracer::Raytracer(const string &outputfile, int width, int height) : img(width, height), outpath(outputfile)
 {
     scene = NULL;
+    srand((unsigned)time(0));
 }
 
 Raytracer::~Raytracer()
@@ -62,12 +64,46 @@ void Raytracer::rayForPixel(int x, int y, Ray &r) const
 {
 
     glm::vec3 pixel_center(0);
-    camera->getPixelCenter(x, y, img.width, img.height, pixel_center);
+    float x_variance = camera->pixelXDimension() * (randf() - 0.5f);
+    float y_variance = camera->pixelYDimension() * (randf() - 0.5f);
+    //std::cout << "pixelXDimension " << camera->pixelXDimension() << " x_variance " << x_variance << std::endl; 
+    camera->getPixelCenter(x, y, pixel_center, x_variance, y_variance);
 
     r = Ray(camera->eye, pixel_center);
-    //r = Ray(camera->eye, glm::vec3(0, 0, 0));
 }
 
+void Raytracer::lightPixel(int u, int v)
+{
+    RGB color;
+    TraceResult result;
+    Ray r;
+
+    int numViewRays = 25;
+    for(int i = 0; i < numViewRays ; i++)
+    {
+        RGB view_ray(0);
+        rayForPixel(u, v, r);
+        if(scene->traceRay(r, result))
+        {
+            if (!once)
+            {
+                std::cout << " got a hit on mesh "  << std::endl;
+                once = true;
+            }
+            computeRadiance(*(result.material), result.tri, result.intersection, view_ray);
+        }
+        else
+        {
+            view_ray = RGB(0.1f, 0.1f, 0.1f);
+        }
+
+        color += view_ray;
+    }
+
+    color /= numViewRays;
+
+    img.setPixelColor(u, v , color);
+}
 
 
 void Raytracer::trace()
@@ -82,31 +118,7 @@ void Raytracer::trace()
         for (int v = 0; v < img.height; ++v)
         {
             //std::cout << " handling pixel " << i << " x " << j << std::endl;
-            RGB color(0);
-            Ray r;
-            rayForPixel(u, v, r);
-
-            if(scene->traceRay(r, result))
-            {
-                if (!once)
-                {
-                    std::cout << " got a hit on mesh "  << std::endl;
-                    once = true;
-                }
-
-                if(computeRadiance(*(result.material), result.tri, result.intersection, color))
-                {
-
-                    //std::cout << "distance to light " << result.-> << std::endl;
-                }
-
-
-                img.setPixelColor(u, v , color);
-            }
-            else
-            {
-                img.setPixelColor(u, v , RGB(0.1f, 0.1f, 0.1f));
-            }
+            lightPixel(u, v);
         }
     }
 

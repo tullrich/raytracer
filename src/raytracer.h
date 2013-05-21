@@ -38,7 +38,13 @@ public:
 private:
 	void rayForPixel(int i, int j, Ray &r) const;
 
+	RGB emittedRadiance(const Material &mat, const Triangle &tri, const glm::vec4 intersection);
+	RGB directRadiance(const Material &mat, const Triangle &tri, const glm::vec4 intersection);
+	RGB indirectRadiance(const Material &mat, const Triangle &tri, const glm::vec4 intersection);
+
 	bool computeRadiance(const Material &mat, const Triangle &tri, const glm::vec4 intersection, RGB &color);
+	
+	void lightPixel(int u, int v);
 
     Image img;
 
