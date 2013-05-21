@@ -218,6 +218,25 @@ static SceneGraph* buildScene(const po::variables_map &vm, Camera* &cam)
     return scene;
 }
 
+static Camera* buildCamera(const po::variables_map &vm)
+{
+    int x_res = 0;
+    int y_res = 0;
+
+    // option height
+    if (vm.count(OPTION_HEIGHT))
+    {
+        getIntOption(y_res, OPTION_HEIGHT, vm);
+    }
+
+    // option width
+    if (vm.count(OPTION_WIDTH))
+    {
+        getIntOption(x_res, OPTION_WIDTH, vm);
+    }
+    return new Camera(x_res, y_res);
+}
+
 int main(int argc, char *argv[])
 {
     Raytracer *tracer;
@@ -234,20 +253,16 @@ int main(int argc, char *argv[])
 
     tracer = buildRayTracer(vm);
     scene = buildScene(vm, cam);
-    cam = NULL; // TODO: fix this
+    cam = buildCamera(vm); // TODO: fix this
     tracer->setScene(scene);
 
-    if (cam == NULL)
-    {
-        cam = new Camera();
-    }
 
     tracer->setCamera(cam);
 
     light = new PointLight("custom");
     light->setLocation(glm::vec3(0, 5, 0), glm::vec3(0));
     light->setColor(RGB(0), RGB(1.0f, 1.0f, 1.0f), RGB(0));
-    light->setAttenuation(1.0f, 0.01f, 0.01f);
+    light->setAttenuation(1.0f, 0.00f, 0.005f);
     scene->addLight(Light::light_ptr(light));
 
     cout << "Tracing scene... " << std::flush;
