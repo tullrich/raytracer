@@ -14,8 +14,14 @@ Raytracer::~Raytracer()
 {
 }
 
-bool Raytracer::computeLightAt(const Material &mat, const Triangle &tri, const glm::vec4 intersection, RGB &color)
+RGB Raytracer::emittedRadiance(const Material &mat, const Triangle &tri, const glm::vec4 intersection)
 {
+    return RGB(0);
+}
+
+RGB Raytracer::directRadiance(const Material &mat, const Triangle &tri, const glm::vec4 intersection)
+{
+    RGB color(0);
     RGB per_light(0);
     TraceResult result;
     glm::vec3 N = tri.normal();
@@ -33,6 +39,21 @@ bool Raytracer::computeLightAt(const Material &mat, const Triangle &tri, const g
             color += per_light * mat.diffuse * fmaxf(glm::dot(N, I), 0);
         }
     }
+
+    return color;
+}
+
+RGB Raytracer::indirectRadiance(const Material &mat, const Triangle &tri, const glm::vec4 intersection)
+{
+    return RGB(0);
+}
+
+bool Raytracer::computeRadiance(const Material &mat, const Triangle &tri, const glm::vec4 intersection, RGB &color)
+{
+
+    color = emittedRadiance(mat, tri, intersection);
+    color += directRadiance(mat, tri, intersection);
+    color += indirectRadiance(mat, tri, intersection);
 }
 
 static int once = false;
@@ -73,7 +94,7 @@ void Raytracer::trace()
                     once = true;
                 }
 
-                if(computeLightAt(*(result.material), result.tri, result.intersection, color))
+                if(computeRadiance(*(result.material), result.tri, result.intersection, color))
                 {
 
                     //std::cout << "distance to light " << result.-> << std::endl;

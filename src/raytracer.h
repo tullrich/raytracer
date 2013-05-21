@@ -38,7 +38,7 @@ public:
 private:
 	void rayForPixel(int i, int j, Ray &r) const;
 
-	bool computeLightAt(const Material &mat, const Triangle &tri, const glm::vec4 intersection, RGB &color);
+	bool computeRadiance(const Material &mat, const Triangle &tri, const glm::vec4 intersection, RGB &color);
 
     Image img;
 
