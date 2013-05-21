@@ -19,7 +19,7 @@ void OctNode::append(Primitive *prim)
 }
 
 
-glm::vec3 OctNode::centerForQuadrant(Quadrant q)
+glm::vec3 OctNode::centerForQuadrant(unsigned int q)
 {
 	glm::vec3 qCenter = center;
 	float offset = halfWidth / 2.0f;
@@ -41,7 +41,7 @@ glm::vec3 OctNode::centerForQuadrant(Quadrant q)
 
 bool OctNode::isLeaf() const
 {
-	return child[0] == NULL;
+	return primitives.size() > 0;
 }
 
 void OctNode::pushDown()
@@ -53,11 +53,15 @@ void OctNode::pushDown()
 	{
 		int j = 0;
 		//bool  = false;
-		child[i]->aabb(childAABB);
+		childAabb(childAABB, i);
 		for(Primitive *p : primitives)
 		{
 			if(p->intersects(childAABB))
 			{
+				if(child[i] == NULL)
+				{
+					allocateChild(i);
+				}
 				count[j] += 1;
 				child[i]->append(p);
 			}
@@ -81,6 +85,13 @@ void OctNode::pushDown()
 	//CGUTILS_ASSERT(n == 0); // if we didnt overlap >=1 child, its a bug
 	primitives.clear();
 	
+}
+
+void OctNode::allocateChild(unsigned int zone)
+{
+	float childHalfWidth = halfWidth / 2.0f;
+
+	child[zone] = new OctNode(centerForQuadrant(zone), childHalfWidth);
 }
 
 void OctNode::allocateChildren()
@@ -107,6 +118,19 @@ void OctNode::aabb(AABB &aabb)
 	}
 }
 
+
+void OctNode::childAabb(AABB &aabb, unsigned int zone)
+{
+	float childHalfWidth = halfWidth / 2.0f;
+	glm::vec3 childCenter = centerForQuadrant(zone);
+
+	for (int i = 0; i < 3; i++)
+	{
+		aabb.max[i] = childCenter[i] + childHalfWidth;
+		aabb.min[i] = childCenter[i] - childHalfWidth;
+	}
+}
+
 bool OctNode::testPrimitives(const Ray &r, TraceResult &result)
 {
 	TraceResult temp_result;
@@ -123,6 +147,8 @@ bool OctNode::testPrimitives(const Ray &r, TraceResult &result)
 			}
 		}
 	}
+
+	OctreeSceneGraphImp::numCompares += primitives.size();
 	//std::cout << "got here    found " << found_one << std::endl; 
 	return found_one;
 }
@@ -194,7 +220,7 @@ bool OctNode::traceRay(const Ray &r, TraceResult &result, float tx0,float ty0, f
 		{
 			case 0 :
 			{
-				if(child[BSW ^ a]->traceRay(r, result, tx0, ty0, tz0, txm, tym, tzm, a)) // back - south - west
+				if(child[BSW ^ a] && child[BSW ^ a]->traceRay(r, result, tx0, ty0, tz0, txm, tym, tzm, a)) // back - south - west
 				{
 					return true;
 				}
@@ -204,7 +230,7 @@ bool OctNode::traceRay(const Ray &r, TraceResult &result, float tx0,float ty0, f
 			}
 			case 1 :
 			{
-				if(child[FSW ^ a]->traceRay(r, result, tx0, ty0, tzm, txm, tym, tz1, a)) // front - south - west
+				if(child[FSW ^ a] && child[FSW ^ a]->traceRay(r, result, tx0, ty0, tzm, txm, tym, tz1, a)) // front - south - west
 				{
 					return true;
 				}
@@ -214,7 +240,7 @@ bool OctNode::traceRay(const Ray &r, TraceResult &result, float tx0,float ty0, f
 			}
 			case 2 :
 			{
-				if(child[BNW ^ a]->traceRay(r, result, tx0, tym, tz0, txm, ty1, tzm, a)) // back - north - west
+				if(child[BNW ^ a] && child[BNW ^ a]->traceRay(r, result, tx0, tym, tz0, txm, ty1, tzm, a)) // back - north - west
 				{
 					return true;
 				}
@@ -224,7 +250,7 @@ bool OctNode::traceRay(const Ray &r, TraceResult &result, float tx0,float ty0, f
 			}
 			case 3 :
 			{
-				if(child[FNW ^ a]->traceRay(r, result, tx0, tym, tzm, txm, ty1, tz1, a)) // front - north - west
+				if(child[FNW ^ a] && child[FNW ^ a]->traceRay(r, result, tx0, tym, tzm, txm, ty1, tz1, a)) // front - north - west
 				{
 					return true;
 				}
@@ -234,7 +260,7 @@ bool OctNode::traceRay(const Ray &r, TraceResult &result, float tx0,float ty0, f
 			}
 			case 4 :
 			{
-				if(child[BSE ^ a]->traceRay(r, result, txm, ty0, tz0, tx1, tym, tzm, a)) // back - south - east
+				if(child[BSE ^ a] && child[BSE ^ a]->traceRay(r, result, txm, ty0, tz0, tx1, tym, tzm, a)) // back - south - east
 				{
 					return true;
 				}
@@ -244,7 +270,7 @@ bool OctNode::traceRay(const Ray &r, TraceResult &result, float tx0,float ty0, f
 			}
 			case 5 :
 			{
-				if(child[FSE ^ a]->traceRay(r, result, txm, ty0, tzm, tx1, tym, tz1, a)) // front - south - east
+				if(child[FSE ^ a] && child[FSE ^ a]->traceRay(r, result, txm, ty0, tzm, tx1, tym, tz1, a)) // front - south - east
 				{
 					return true;
 				}
@@ -254,7 +280,7 @@ bool OctNode::traceRay(const Ray &r, TraceResult &result, float tx0,float ty0, f
 			}
 			case 6 :
 			{
-				if(child[BNE ^ a]->traceRay(r, result, txm, tym, tz0, tx1, ty1, tzm, a)) // back - north - east
+				if(child[BNE ^ a] && child[BNE ^ a]->traceRay(r, result, txm, tym, tz0, tx1, ty1, tzm, a)) // back - north - east
 				{
 					return true;
 				}
@@ -264,7 +290,7 @@ bool OctNode::traceRay(const Ray &r, TraceResult &result, float tx0,float ty0, f
 			}
 			case 7 :
 			{
-				if(child[FNE ^ a]->traceRay(r, result, txm, tym, tzm, tx1, ty1, tz1, a)) // front - north - east
+				if(child[FNE ^ a] && child[FNE ^ a]->traceRay(r, result, txm, tym, tzm, tx1, ty1, tz1, a)) // front - north - east
 				{
 					return true;
 				}
@@ -277,6 +303,8 @@ bool OctNode::traceRay(const Ray &r, TraceResult &result, float tx0,float ty0, f
 
 	return false;
 }
+
+long OctreeSceneGraphImp::numCompares = 0;
 
 OctreeSceneGraphImp::OctreeSceneGraphImp(int treeDepth)
 {
@@ -295,8 +323,8 @@ void OctreeSceneGraphImp::build()
 	root->center = glm::vec3(0);
 	root->halfWidth = optimalRootWidth() + 1.0f;
 
-	buildOctree_r(root, maxDepth);
-	pushDown_r(root);
+	//buildOctree_r(root, maxDepth);
+	pushDown_r(root, maxDepth);
 }
 
 float OctreeSceneGraphImp::optimalRootWidth()
@@ -325,21 +353,23 @@ void OctreeSceneGraphImp::buildOctree_r(OctNode *n, int stopDepth)
 	}
 }
 
-void OctreeSceneGraphImp::pushDown_r(OctNode *n)
+void OctreeSceneGraphImp::pushDown_r(OctNode *n, int stopDepth)
 {
-	if(n->isLeaf())
+	if (stopDepth == 0)
 		return;
 
 	n->pushDown();
 
 	for(int i = 0; i < 8; i++)
 	{
-		pushDown_r(n->child[i]);
+		if(n->child[i])
+			pushDown_r(n->child[i], stopDepth - 1);
 	}
 }
 
 bool OctreeSceneGraphImp::traceRay(const Ray &r, TraceResult &result) const
 {
+	numCompares = 0;
 	unsigned char a = 0;
 	Ray mod_r = r;
 
@@ -405,7 +435,10 @@ bool OctreeSceneGraphImp::traceRay(const Ray &r, TraceResult &result) const
 	float min = fminf(tx1, fminf(ty1, tz1)); // latest we are inside all exist planes
 	if(fmaxf(tx0, fmaxf(ty0, tz0)) < fminf(tx1, fminf(ty1, tz1)))
 	{
-		return root->traceRay(r, result, tx0, ty0, tz0, tx1, ty1, tz1, a);
+		bool didFind = root->traceRay(r, result, tx0, ty0, tz0, tx1, ty1, tz1, a);
+
+		//std::cout << " found with " << numCompares << std::endl;
+		return didFind;
 	}
 
 	return false;

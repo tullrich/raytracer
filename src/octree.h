@@ -35,7 +35,7 @@ public:
 	void append(Primitive *prim);
 	bool isLeaf() const; 
 	void pushDown();
-	glm::vec3 centerForQuadrant(Quadrant quadrent);
+	glm::vec3 centerForQuadrant(unsigned int );
 	void allocateChildren();
 	bool testPrimitives(const Ray &r, TraceResult &result);
 	bool traceRay(const Ray &r, TraceResult &result, float tx0,float ty0, float tz0, float tx1, float ty1, float tz1, unsigned char a);
@@ -45,6 +45,9 @@ public:
 	 * @return the aabb
 	 */
 	void aabb(AABB &aabb);
+
+	void childAabb(AABB &aabb, unsigned int zone);
+	void allocateChild(unsigned int zone);
 
 	glm::vec3 center;
 	float halfWidth;
@@ -81,11 +84,12 @@ public:
 	 * down as far as possible
 	 */
 	virtual void build();
+	static long numCompares;
 
 private:
 
 	void buildOctree_r(OctNode *n, int stopDepth);
-	void pushDown_r(OctNode *n);
+	void pushDown_r(OctNode *n, int stopDepth);
 	float optimalRootWidth();
 
 	std::list<Entity::entity_ptr> allEntities; // list of all entities, not used for ray trace calculations
