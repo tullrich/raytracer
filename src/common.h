@@ -67,6 +67,15 @@ inline float clamp(float x, float a, float b)
     return x < a ? a : (x > b ? b : x);
 }
 
+/**
+ * random float between 0 and 1 inclusive
+ * @return random float
+ */
+inline float randf()
+{
+	return (float)rand()/(float)RAND_MAX;
+}
+
 extern bool debugvar;
 
 std::ostream& operator<<(std::ostream& o, const glm::vec3& b);
