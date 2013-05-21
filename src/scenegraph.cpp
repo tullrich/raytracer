@@ -71,7 +71,7 @@ bool ButeForceSceneGraphImp::traceRay(const Ray &r, TraceResult &result) const
 SceneGraph* SceneGraphFactory::getSceneGraph()
 {
 	// preset for now
-	return new OctreeSceneGraphImp(8);
+	return new OctreeSceneGraphImp(12);
 }
 
 
