@@ -79,8 +79,8 @@ void AssimpAssetReader::accept(const EntityVisitor &visitor)
 	aiNode *root = NULL;
 	aiMatrix4x4 identity;
 
-	std::cout << "num cams " << scene->mNumCameras << std::endl;
-	std::cout << "num lights " << scene->mNumLights << std::endl;
+	//std::cout << "num cams " << scene->mNumCameras << std::endl;
+	//std::cout << "num lights " << scene->mNumLights << std::endl;
 	
 	root = scene->mRootNode;
 	if(root)
@@ -335,7 +335,7 @@ void AssimpAssetReader::visitNode_r(const aiNode *node, aiMatrix4x4 parentToWorl
 	//compute the world space transformation matrix for this model
 	if(node->mParent != NULL)
 	{
-		std::cout << "visiting node " << node->mName.C_Str() << " parent "  << std::endl;
+		//std::cout << "visiting node " << node->mName.C_Str() << " parent "  << std::endl;
 	}
 
 	/*std::cout << worldSpace.a1 << " " << worldSpace.a2 << " " << worldSpace.a3 << std::endl;
