@@ -73,6 +73,14 @@ private:
 	float angleInnerCone, angleOuterCone;
 };
 
+class AreaLight : public Light
+{
+public:
+	AreaLight(const std::string &name, float inner, float outer) : Light(name), angleInnerCone(inner), angleOuterCone(outer) {};
+private:
+	float angleInnerCone, angleOuterCone;
+};
+
 
 /**
  * Helper class for visiting Lights
