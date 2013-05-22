@@ -173,5 +173,18 @@ glm::vec3 adjustFloatingPointToward(const glm::vec3 point, const glm::vec3 &n)
     return point + .00001f * n;
 }
 
+glm::vec3 uniformDirectionOnHemisphere(const glm::vec3 normal, float &pdf_theta)
+{
+    // sample 3-axis in uniform direction
+    glm::vec3 rand_direction(randf() - 0.5f, randf() - 0.5f, randf() - 0.5f);
+
+    if(glm::dot(rand_direction, normal) < 0)
+    {
+        rand_direction = -rand_direction;
+    }
+
+    pdf_theta = 2.0f * (float)M_PI
+    return rand_direction;
+}
 
 } /* namespace raytracer */

@@ -5,7 +5,7 @@
 
 namespace raytracer {
 
-bool intersectLineTriangle(glm::vec3 p, glm::vec3 a, glm::vec3 b);
+glm::vec3 uniformDirectionOnHemisphere(const glm::vec3 normal, float &pdf_theta);
 
 } /* raytracer */
 
