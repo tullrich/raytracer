@@ -6,6 +6,11 @@ namespace raytracer {
 Light::Light(const std::string &name) : name(name), ambient(0), diffuse(0), specular(0), position(0), direction(0)
 {}
 
+void Light::genShadowRay(const glm::vec3 point, Ray &r)
+{
+	r = Ray(point, position);
+}
+
 void Light::setColor(const RGB &ambient, const RGB &diffuse, const RGB &specular)
 {
 	this->ambient = ambient;

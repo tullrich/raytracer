@@ -23,7 +23,7 @@ public:
 
 	virtual void getAttenuatedRadiance(const glm::vec3 &point, float d, RGB &out) const {};
 
-
+	virtual void genShadowRay(const glm::vec3 point, Ray &r);
 	/**
 	 * Location vars
 	 */
