@@ -2,6 +2,7 @@
 #define _RAYTRACER_H_
 
 #include <string>
+#include <boost/thread.hpp>
 #include "rtimage.h"
 #include "scenegraph.h"
 #include "common.h"
@@ -29,7 +30,8 @@ public:
 	/**
 	 * run the raytrace algorithm
 	 */
-	void trace();
+	void trace(int u_min, int u_max);
+	void run();
 
 	/* setters */
 	void setScene(SceneGraph *scene) { this->scene = scene; };

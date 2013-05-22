@@ -105,22 +105,35 @@ void Raytracer::lightPixel(int u, int v)
     img.setPixelColor(u, v , color);
 }
 
-
-void Raytracer::trace()
+void Raytracer::trace(int u_min, int u_max)
 {
-    CGUTILS_ASSERT(scene);
-    CGUTILS_ASSERT(camera);
-
-    TraceResult result;
-
-    for (int u = 0; u < img.width; ++u)
+    for (int u = u_min; u < u_max; ++u)
     {
         for (int v = 0; v < img.height; ++v)
         {
             //std::cout << " handling pixel " << i << " x " << j << std::endl;
             lightPixel(u, v);
+            count++;
+            std::cout << 100.0f * count / (float)(img.width * img.height) << "%" << std::endl;
         }
     }
+}
+
+void Raytracer::run()
+{
+    CGUTILS_ASSERT(scene);
+    CGUTILS_ASSERT(camera);
+
+    boost::thread_group group;
+
+    int numThreads = 8;
+    int columnsPerThread = img.width / numThreads;
+    for (int i = 0; i < numThreads; i++)
+    {  
+
+        group.add_thread(new boost::thread(&Raytracer::trace, this, i * columnsPerThread, (i+1) * columnsPerThread));
+    }
+    group.join_all();
 
     if (!img.writeOut(outpath))
     {
@@ -128,7 +141,13 @@ void Raytracer::trace()
     }
 }
 
-
+bool Raytracer::russianRoulette(const RGB &reflectance, float &survivor)
+{
+    float p = fmax(reflectance[0], fmax(reflectance[1], reflectance[2]));
+    survivor = 1.0/p;
+    if (randf() > p) return true;
+    return false;
+}
 
 Raytracer* RaytraceBuilder::buildRaytracer()
 {
