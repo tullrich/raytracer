@@ -16,7 +16,8 @@ Ray::Ray(glm::vec3 p, glm::vec3 q)
 	this->p = p;
 	this->q = q;
 
-	this-> n = glm::normalize(q - p);
+	this->n = glm::normalize(q - p);
+	this->d = glm::length(q - p);
 }
 
 

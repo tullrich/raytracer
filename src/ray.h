@@ -32,12 +32,13 @@ public:
 class Ray
 {
 public:
-	Ray() : p(0), q(0) {};
+	Ray() : p(0), q(0), n(0), d(0) {};
 	Ray(glm::vec3 p, glm::vec3 q);
 
 	glm::vec3 p; // ray origin point
-	glm::vec3 q; // Direction of the ray is normalize (q - p);
+	glm::vec3 q; // ray second point;
 	glm::vec3 n; // Direction of the ray is normalize (q - p);
+	float d;
 
 	/**
 	 * Calculate the barycentric coordinates of the intersection of this ray with

@@ -38,11 +38,9 @@ RGB Raytracer::directRadiance(const Material &mat, const Triangle &tri, const gl
 
         if (scene->testVisibility(to_light, result))
         {
-            glm::vec3 incident_direction = glm::vec3(light->position - point);
-            float d = glm::length(incident_direction);
-            light->getAttenuatedRadiance(point, d, per_light);
+            light->getAttenuatedRadiance(point, to_light.d, per_light);
 
-            glm::vec3 I = glm::normalize(incident_direction);
+            glm::vec3 I = to_light.n;
             color += per_light * mat.diffuse * fmaxf(glm::dot(N, I), 0);
         }
     }
