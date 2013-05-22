@@ -24,7 +24,7 @@ public:
 
 	virtual void getAttenuatedRadiance(const glm::vec3 &point, float d, RGB &out) const {};
 
-	virtual void genShadowRay(const glm::vec3 point, Ray &r);
+	virtual void genShadowRay(const glm::vec3 point, Ray &r) const;
 	/**
 	 * Location vars
 	 */
@@ -78,6 +78,8 @@ class AreaLight : public Light
 {
 public:
 	AreaLight(const std::string &name, const glm::vec3 &side_h, const glm::vec3 &side_w);
+	virtual void genShadowRay(const glm::vec3 point, Ray &r) const;
+	void getAttenuatedRadiance(const glm::vec3 &point, float d, RGB &out) const;
 private:
 	glm::vec3 normal;
 	glm::vec3 side_h, side_w;
