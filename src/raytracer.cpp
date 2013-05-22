@@ -94,18 +94,6 @@ bool Raytracer::traceRay(const Ray &r, RGB &color, int depth)
     return false;
 }
 
-void Raytracer::rayForPixel(int x, int y, Ray &r) const
-{
-
-    glm::vec3 pixel_center(0);
-    float x_variance = camera->pixelXDimension() * (randf() - 0.5f);
-    float y_variance = camera->pixelYDimension() * (randf() - 0.5f);
-    //std::cout << "pixelXDimension " << camera->pixelXDimension() << " x_variance " << x_variance << std::endl; 
-    camera->getPixelCenter(x, y, pixel_center, x_variance, y_variance);
-
-    r = Ray(camera->eye, pixel_center);
-}
-
 static int count = 0;
 
 void Raytracer::lightPixel(int u, int v)
@@ -117,8 +105,8 @@ void Raytracer::lightPixel(int u, int v)
     for(int i = 0; i < numViewRays ; i++)
     {
         RGB view_ray(0);
-        rayForPixel(u, v, r);
-        traceRay(r, view_ray, 2);
+        camera->genViewingRay(u, v, r);
+        traceRay(r, view_ray, 0);
         color += view_ray;
     }
 

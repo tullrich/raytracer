@@ -68,6 +68,16 @@ void Camera::getPixelCenter(int i, int j, glm::vec3 &out, float variance_i, floa
 }
 
 
+void Camera::genViewingRay(int i, int j, Ray &r)
+{
+    glm::vec3 pixel_center(0);
+    float x_variance = pixel_x * (randf() - 0.5f);
+    float y_variance = pixel_y * (randf() - 0.5f);
+    getPixelCenter(i, j, pixel_center, x_variance, y_variance);
+
+    r = Ray(eye, pixel_center);
+}
+
 float Camera::pixelXDimension() const
 {
 	return pixel_x;

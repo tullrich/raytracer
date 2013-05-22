@@ -2,6 +2,7 @@
 #define _CAMERA_H_ 
 
 #include "common.h"
+#include "ray.h"
 
 namespace raytracer {
 
@@ -29,6 +30,14 @@ public:
 	 * @param out    set to the resulting worldspace vector
 	 */
 	void getPixelCenter(int i, int j, glm::vec3 &out, float variance_i, float variance_j)  const;
+
+	/**
+	 * generate a random viewing ray for the near plane project pixel (i, j)
+	 * @param i width pixel value
+	 * @param j height pixel value
+	 * @param r resultant {@link Ray}
+	 */
+	void genViewingRay(int i, int j, Ray &r);
 
 	float pixelXDimension() const;
 	float pixelYDimension() const;
