@@ -260,13 +260,13 @@ int main(int argc, char *argv[])
     tracer->setCamera(cam);
 
     light = new PointLight("custom");
-    light->setLocation(glm::vec3(0, 5, 0), glm::vec3(0));
+    light->setLocation(glm::vec3(0, 1.90, 0.0), glm::vec3(0));
     light->setColor(RGB(0), RGB(1.0f, 1.0f, 1.0f), RGB(0));
     light->setAttenuation(1.0f, 0.00f, 0.005f);
     scene->addLight(Light::light_ptr(light));
 
     cout << "Tracing scene... " << std::flush;
-    tracer->trace();
+    tracer->run();
     cout << "done" << endl;
 
 

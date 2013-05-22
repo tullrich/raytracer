@@ -6,13 +6,13 @@ namespace raytracer {
 
 Camera::Camera(int x_res, int y_res)
 {
-	this->eye       = glm::vec3(10.0f, 10.0f, 10.0f); //  position; // 
-	this->lookAt    = glm::vec3(0.0f, 2.0f, 0.0f); // lookAt; // 
+	this->eye       = glm::vec3(0.0f, 1.0f, 3.4f); //  position; // 
+	this->lookAt    = glm::vec3(0.0f, 1.0f, 0.0f); // lookAt; // 
 	this->up        = glm::vec3(0.0f, 1.0f, 0.0f); // up; // 
 	
-	this->nearPlane = 1.0f;
+	this->nearPlane = 0.035f;
 	this->farPlane  = 100.0f;
-	this->FOV       = 90.0f * M_PI / 180.0f ; // in radians
+	this->FOV       = 45.0f * M_PI / 180.0f ; // in radians
 	this->aspect    = 16.0f / 9.0f;
 	this->FOVy      = FOV / (aspect); // in radians
 
