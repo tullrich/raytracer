@@ -26,12 +26,17 @@ RGB Raytracer::directRadiance(const Material &mat, const Triangle &tri, const gl
     RGB color(0);
     RGB per_light(0);
     TraceResult result;
+    Ray to_light;
+
     glm::vec3 N = tri.normal();
     glm::vec3 point = adjustFloatingPointToward(tri.intersectionToPoint(intersection), N);
 
     for (Light::light_ptr light : scene->lights)
     {
-        if (scene->testVisibility(point, light->position, result))
+        // get some light ray for this light
+        light->genShadowRay(point, to_light);
+
+        if (scene->testVisibility(to_light, result))
         {
             glm::vec3 incident_direction = glm::vec3(light->position - point);
             float d = glm::length(incident_direction);
@@ -121,7 +126,6 @@ void Raytracer::trace(int u_min, int u_max)
     {
         for (int v = 0; v < img.height; ++v)
         {
-            //std::cout << " handling pixel " << i << " x " << j << std::endl;
             lightPixel(u, v);
             count++;
             std::cout << 100.0f * count / (float)(img.width * img.height) << "%" << std::endl;
@@ -226,7 +230,7 @@ glm::vec3 Raytracer::cosineImportanceSampling(const glm::vec3 normal, float &inv
      glm::vec3 rand_direction = uniformDirectionOnHemisphere(normal);
 
      float cos_theta = glm::dot(rand_direction, normal);
-     std::cout << "cos_theta " << cos_theta << std::endl; 
+     //std::cout << "cos_theta " << cos_theta << std::endl; 
      inverse_pdf = M_PI / cos_theta;
 }
 
