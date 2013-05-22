@@ -48,6 +48,9 @@ private:
 	bool russianRoulette(const RGB &reflectance, float &survivor);
 	void lightPixel(int u, int v);
 
+	glm::vec3 uniformImportanceSampling(const glm::vec3 normal, float &inverse_pdf);
+	glm::vec3 cosineImportanceSampling(const glm::vec3 normal, float &inverse_pdf);
+
     Image img;
 
     /**

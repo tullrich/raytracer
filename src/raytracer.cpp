@@ -57,12 +57,12 @@ RGB Raytracer::indirectRadiance(const Material &mat, const Triangle &tri, const 
         int numIndirectRays = 50;
         for (int i = 0; i < numIndirectRays; i++)
         {
-            float pdf_theta = 0;
-            glm::vec3 rand_direction = uniformDirectionOnHemisphere(N, pdf_theta);
+            float inverse_pdf = 0;
+            glm::vec3 rand_direction = cosineImportanceSampling(N, inverse_pdf);
             Ray indirect_ray(point, point + rand_direction);
             RGB per_ray_color; 
             traceRay(indirect_ray, per_ray_color, depth - 1);
-            indirect_color +=  per_ray_color * pdf_theta * mat.diffuse * fmaxf(glm::dot(N, rand_direction), 0);
+            indirect_color +=  per_ray_color * inverse_pdf * mat.diffuse * fmaxf(glm::dot(N, rand_direction), 0);
             
         }
         indirect_color /= (float) numIndirectRays;
@@ -214,7 +214,7 @@ glm::vec3 adjustFloatingPointToward(const glm::vec3 point, const glm::vec3 &n)
     return point + .00001f * n;
 }
 
-glm::vec3 uniformDirectionOnHemisphere(const glm::vec3 normal, float &pdf_theta)
+glm::vec3 uniformDirectionOnHemisphere(const glm::vec3 normal)
 {
     // sample 3-axis in uniform direction
     glm::vec3 rand_direction(randf() - 0.5f, randf() - 0.5f, randf() - 0.5f);
@@ -224,8 +224,22 @@ glm::vec3 uniformDirectionOnHemisphere(const glm::vec3 normal, float &pdf_theta)
         rand_direction = -rand_direction;
     }
 
-    pdf_theta = 2.0f * (float)M_PI
-    return rand_direction;
+    return glm::normalize(rand_direction);
+}
+
+glm::vec3 Raytracer::uniformImportanceSampling(const glm::vec3 normal, float &inverse_pdf)
+{
+    inverse_pdf = 2.0f * (float)M_PI;
+    return uniformDirectionOnHemisphere(normal);
+}
+
+glm::vec3 Raytracer::cosineImportanceSampling(const glm::vec3 normal, float &inverse_pdf)
+{
+     glm::vec3 rand_direction = uniformDirectionOnHemisphere(normal);
+
+     float cos_theta = glm::dot(rand_direction, normal);
+     std::cout << "cos_theta " << cos_theta << std::endl; 
+     inverse_pdf = M_PI / cos_theta;
 }
 
 } /* namespace raytracer */
