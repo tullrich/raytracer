@@ -45,20 +45,54 @@ RGB Raytracer::directRadiance(const Material &mat, const Triangle &tri, const gl
     return color;
 }
 
-RGB Raytracer::indirectRadiance(const Material &mat, const Triangle &tri, const glm::vec4 intersection)
+RGB Raytracer::indirectRadiance(const Material &mat, const Triangle &tri, const glm::vec4 intersection, int depth)
 {
-    return RGB(0);
+    RGB indirect_color(0);
+    glm::vec3 N = tri.normal();
+    glm::vec3 point = adjustFloatingPointToward(tri.intersectionToPoint(intersection), N);
+
+    float survive = 1.0f;
+    if(depth > 0 && russianRoulette(mat.diffuse, survive))
+    {
+        int numIndirectRays = 50;
+        for (int i = 0; i < numIndirectRays; i++)
+        {
+            float pdf_theta = 0;
+            glm::vec3 rand_direction = uniformDirectionOnHemisphere(N, pdf_theta);
+            Ray indirect_ray(point, point + rand_direction);
+            RGB per_ray_color; 
+            traceRay(indirect_ray, per_ray_color, depth - 1);
+            indirect_color +=  per_ray_color * pdf_theta * mat.diffuse * fmaxf(glm::dot(N, rand_direction), 0);
+            
+        }
+        indirect_color /= (float) numIndirectRays;
+    }
+
+    return indirect_color * survive;
 }
-
-bool Raytracer::computeRadiance(const Material &mat, const Triangle &tri, const glm::vec4 intersection, RGB &color)
-{
-
-    color = emittedRadiance(mat, tri, intersection);
-    color += directRadiance(mat, tri, intersection);
-    color += indirectRadiance(mat, tri, intersection);
-}
-
 static int once = false;
+
+
+bool Raytracer::traceRay(const Ray &r, RGB &color, int depth)
+{
+    TraceResult result;
+
+    if(scene->traceRay(r, result))
+    {
+        if (!once)
+        {
+            std::cout << " got a hit on mesh "  << std::endl;
+            once = true;
+        }
+        color = emittedRadiance(*(result.material),  result.tri,  result.intersection);
+        color += directRadiance(*(result.material),  result.tri,  result.intersection);
+        color += indirectRadiance(*(result.material),  result.tri,  result.intersection, depth);
+        return true;
+    }
+
+    color = RGB(0.1f, 0.1f, 0.1f);
+    return false;
+}
 
 void Raytracer::rayForPixel(int x, int y, Ray &r) const
 {
@@ -72,10 +106,11 @@ void Raytracer::rayForPixel(int x, int y, Ray &r) const
     r = Ray(camera->eye, pixel_center);
 }
 
+static int count = 0;
+
 void Raytracer::lightPixel(int u, int v)
 {
     RGB color;
-    TraceResult result;
     Ray r;
 
     int numViewRays = 25;
@@ -83,20 +118,7 @@ void Raytracer::lightPixel(int u, int v)
     {
         RGB view_ray(0);
         rayForPixel(u, v, r);
-        if(scene->traceRay(r, result))
-        {
-            if (!once)
-            {
-                std::cout << " got a hit on mesh "  << std::endl;
-                once = true;
-            }
-            computeRadiance(*(result.material), result.tri, result.intersection, view_ray);
-        }
-        else
-        {
-            view_ray = RGB(0.1f, 0.1f, 0.1f);
-        }
-
+        traceRay(r, view_ray, 2);
         color += view_ray;
     }
 

@@ -7,6 +7,7 @@
 #include <glm/glm.hpp>
 #include "glm/gtc/quaternion.hpp"
 #include "cgutils/cgutils.hpp"
+#include "trig.h"
 
 namespace raytracer {
 

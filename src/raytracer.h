@@ -42,10 +42,10 @@ private:
 
 	RGB emittedRadiance(const Material &mat, const Triangle &tri, const glm::vec4 intersection);
 	RGB directRadiance(const Material &mat, const Triangle &tri, const glm::vec4 intersection);
-	RGB indirectRadiance(const Material &mat, const Triangle &tri, const glm::vec4 intersection);
+	RGB indirectRadiance(const Material &mat, const Triangle &tri, const glm::vec4 intersection, int depth);
 
-	bool computeRadiance(const Material &mat, const Triangle &tri, const glm::vec4 intersection, RGB &color);
-	
+	bool traceRay(const Ray &r, RGB &color, int depth);
+	bool russianRoulette(const RGB &reflectance, float &survivor);
 	void lightPixel(int u, int v);
 
     Image img;
