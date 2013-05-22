@@ -31,9 +31,9 @@ void Light::setAttenuation(float constant, float linear, float quadratic)
 	this->attenuationQuadratic = quadratic;
 }
 
-void PointLight::getAttenuatedRadiance(const glm::vec3 &point, float d, RGB &out) const
+void PointLight::getAttenuatedRadiance(const Ray &r, RGB &out) const
 {
-	float cofactor = attenuationConstant + attenuationLinear * d + attenuationQuadratic * pow(d, 2);
+	float cofactor = attenuationConstant + attenuationLinear * r.d + attenuationQuadratic * pow(r.d, 2);
 	cofactor = clamp(1.0f / cofactor, 0.0, 1.0);
 
 	//std::cout << "d " << d << " cofactor " << cofactor << " result " << diffuse * cofactor << std::endl;
@@ -59,14 +59,16 @@ void AreaLight::genShadowRay(const glm::vec3 point, Ray &r) const
 	r = Ray(point, sample_point);
 }
 
-void AreaLight::getAttenuatedRadiance(const glm::vec3 &point, float d, RGB &out) const
+void AreaLight::getAttenuatedRadiance(const Ray &r, RGB &out) const
 {
-	float cofactor = attenuationConstant + attenuationLinear * d + attenuationQuadratic * pow(d, 2);
+	glm::vec3 light_exitant = r.p - r.q;
+	float d = glm::length(light_exitant);
+	light_exitant = glm::normalize(light_exitant);
+
+	float cofactor = attenuationConstant + attenuationLinear * r.d + attenuationQuadratic * pow(r.d, 2);
 	cofactor = clamp(1.0f / cofactor, 0.0, 1.0);
 
-	//std::cout << "d " << d << " cofactor " << cofactor << " result " << diffuse * cofactor << std::endl;
-
-	out = diffuse * cofactor;
+	out = diffuse * cofactor * fmaxf(glm::dot(normal, light_exitant), 0) * area;
 }
 
 

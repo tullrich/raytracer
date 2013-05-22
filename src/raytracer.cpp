@@ -38,7 +38,7 @@ RGB Raytracer::directRadiance(const Material &mat, const Triangle &tri, const gl
 
         if (scene->testVisibility(to_light, result))
         {
-            light->getAttenuatedRadiance(point, to_light.d, per_light);
+            light->getAttenuatedRadiance(to_light, per_light);
 
             glm::vec3 I = to_light.n;
             color += per_light * mat.diffuse * fmaxf(glm::dot(N, I), 0);
@@ -57,7 +57,7 @@ RGB Raytracer::indirectRadiance(const Material &mat, const Triangle &tri, const 
     float survive = 1.0f;
     if(depth > 0 && russianRoulette(mat.diffuse, survive))
     {
-        int numIndirectRays = 50;
+        int numIndirectRays = 5;
         for (int i = 0; i < numIndirectRays; i++)
         {
             float inverse_pdf = 0;
@@ -109,7 +109,7 @@ void Raytracer::lightPixel(int u, int v)
     {
         RGB view_ray(0);
         camera->genViewingRay(u, v, r);
-        traceRay(r, view_ray, 0);
+        traceRay(r, view_ray, 4);
         color += view_ray;
     }
 
