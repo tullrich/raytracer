@@ -38,7 +38,6 @@ public:
 	void setCamera(Camera *camera) { this->camera = camera; };
 
 private:
-	void rayForPixel(int i, int j, Ray &r) const;
 
 	RGB emittedRadiance(const Material &mat, const Triangle &tri, const glm::vec4 intersection);
 	RGB directRadiance(const Material &mat, const Triangle &tri, const glm::vec4 intersection);

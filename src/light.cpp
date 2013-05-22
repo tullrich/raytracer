@@ -46,7 +46,7 @@ AreaLight::AreaLight(const std::string &name, const glm::vec3 &side_h, const glm
 	this->side_h = side_h;
 	this->side_w = side_w;
 	this->normal = glm::normalize(glm::cross(side_h, side_w));
-	area = glm::length(glm::cross(side_h, side_w));
+	this->area = glm::length(glm::cross(side_h, side_w));
 }
 
 void AreaLight::genShadowRay(const glm::vec3 point, Ray &r) const
