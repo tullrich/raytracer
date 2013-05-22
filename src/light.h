@@ -2,6 +2,7 @@
 #define _LIGHT_H_ 
 
 #include "common.h"
+#include "ray.h"
 
 namespace raytracer {
 
@@ -76,9 +77,11 @@ private:
 class AreaLight : public Light
 {
 public:
-	AreaLight(const std::string &name, float inner, float outer) : Light(name), angleInnerCone(inner), angleOuterCone(outer) {};
+	AreaLight(const std::string &name, const glm::vec3 &side_h, const glm::vec3 &side_w);
 private:
-	float angleInnerCone, angleOuterCone;
+	glm::vec3 normal;
+	glm::vec3 side_h, side_w;
+	float area;
 };
 
 

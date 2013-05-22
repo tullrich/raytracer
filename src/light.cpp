@@ -41,6 +41,15 @@ void PointLight::getAttenuatedRadiance(const glm::vec3 &point, float d, RGB &out
 	out = diffuse * cofactor;
 }
 
+AreaLight::AreaLight(const std::string &name, const glm::vec3 &side_h, const glm::vec3 &side_w) : Light(name)
+{
+	this->side_h = side_h;
+	this->side_w = side_w;
+	this->normal = glm::normalize(glm::cross(side_h, side_w));
+	area = glm::length(glm::cross(side_h, side_w));
+}
+
+
 std::ostream& operator<<(std::ostream& o, const Light& b)
 {
 	return o << "Light '" << b.name << "' {\n" \
