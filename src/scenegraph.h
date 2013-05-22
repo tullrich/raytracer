@@ -25,7 +25,7 @@ public:
 	virtual bool traceRay(const Ray &r, TraceResult &result) const = 0;
 	virtual void build() = 0;
 
-	bool testVisibility(const glm::vec3 &point1, const glm::vec3 &point2, TraceResult &result) const;
+	bool testVisibility(const Ray &r, TraceResult &result) const;
 
 	
 	LightList lights;

@@ -16,19 +16,15 @@ void SceneGraph::addLight(Light::light_ptr light)
 	lights.push_back(light);
 }
 
-
-bool SceneGraph::testVisibility(const glm::vec3 &point1, const glm::vec3 &point2, TraceResult &result) const
+bool SceneGraph::testVisibility(const Ray &r, TraceResult &result) const
 {
-	Ray r(point1, point2);
-	float d = glm::length(point2 - point1);
+	float d = glm::length(r.q - r.p);
 
 	if (traceRay(r, result))
 	{
 		vec3 intersect_point = result.tri.intersectionToPoint(result.intersection); 
-		if (glm::length(intersect_point - point1) < d)
+		if (glm::length(intersect_point - r.p) < d)
 		{
-
-			//std::cout << " non light hit !"  << std::endl;
 			return false;
 		}
 	}
