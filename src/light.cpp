@@ -46,7 +46,7 @@ AreaLight::AreaLight(const std::string &name, const glm::vec3 &side_h, const glm
 	this->side_h = side_h;
 	this->side_w = side_w;
 	this->normal = glm::normalize(glm::cross(side_h, side_w));
-	this->area = glm::length(glm::cross(side_h, side_w));
+	this->area = glm::length(glm::cross(side_w, side_h));
 }
 
 void AreaLight::genShadowRay(const glm::vec3 point, Ray &r) const
@@ -61,9 +61,7 @@ void AreaLight::genShadowRay(const glm::vec3 point, Ray &r) const
 
 void AreaLight::getAttenuatedRadiance(const Ray &r, RGB &out) const
 {
-	glm::vec3 light_exitant = r.p - r.q;
-	float d = glm::length(light_exitant);
-	light_exitant = glm::normalize(light_exitant);
+	glm::vec3 light_exitant = glm::normalize(r.p - r.q);
 
 	float cofactor = attenuationConstant + attenuationLinear * r.d + attenuationQuadratic * pow(r.d, 2);
 	cofactor = clamp(1.0f / cofactor, 0.0, 1.0);
