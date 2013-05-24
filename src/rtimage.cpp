@@ -32,10 +32,9 @@ void Image::setPixelColor(int u, int v, const RGB &color)
 	if(pixel)
 	{
 
-		pixel->r = color.r;
-		pixel->g = color.g;
-		pixel->b = color.b;
-		//std::cout << *pixel << std::endl;
+		pixel->r = clamp(color.r, 0.0f, 1.0f);
+		pixel->g = clamp(color.g, 0.0f, 1.0f);
+		pixel->b = clamp(color.b, 0.0f, 1.0f);
 	}
 	else
 	{
