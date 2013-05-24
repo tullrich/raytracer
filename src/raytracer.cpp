@@ -41,7 +41,7 @@ RGB Raytracer::directRadiance(const Material &mat, const Triangle &tri, const gl
             light->getAttenuatedRadiance(to_light, per_light);
 
             glm::vec3 I = to_light.n;
-            color += per_light * mat.diffuse * fmaxf(glm::dot(N, I), 0);
+            color += per_light * (mat.diffuse/ (float) M_PI) * fmaxf(glm::dot(N, I), 0);
         }
     }
 
@@ -54,24 +54,25 @@ RGB Raytracer::indirectRadiance(const Material &mat, const Triangle &tri, const 
     glm::vec3 N = tri.normal();
     glm::vec3 point = adjustFloatingPointToward(tri.intersectionToPoint(intersection), N);
 
-    float survive = 1.0f;
-    if(depth > 0 && russianRoulette(mat.diffuse, survive))
+
+    int numIndirectRays = 1;
+    for (int i = 0; i < numIndirectRays; i++)
     {
-        int numIndirectRays = 5;
-        for (int i = 0; i < numIndirectRays; i++)
+        float survive = 1.0f;
+        if(depth > 0)
         {
             float inverse_pdf = 0;
-            glm::vec3 rand_direction = cosineImportanceSampling(N, inverse_pdf);
+            glm::vec3 rand_direction = uniformImportanceSampling(N, inverse_pdf);
             Ray indirect_ray(point, point + rand_direction);
             RGB per_ray_color; 
             traceRay(indirect_ray, per_ray_color, depth - 1);
-            indirect_color +=  per_ray_color * inverse_pdf * mat.diffuse * fmaxf(glm::dot(N, rand_direction), 0);
-            
+            indirect_color +=  survive * per_ray_color * mat.diffuse * fmaxf(glm::dot(N, rand_direction), 0) * 2.0f;
         }
-        indirect_color /= (float) numIndirectRays;
+        
     }
+    return indirect_color / (float) numIndirectRays;
 
-    return indirect_color * survive;
+    //return indirect_color / (float) numIndirectRays;
 }
 static int once = false;
 
@@ -104,12 +105,12 @@ void Raytracer::lightPixel(int u, int v)
     RGB color;
     Ray r;
 
-    int numViewRays = 25;
+    int numViewRays = 500;
     for(int i = 0; i < numViewRays ; i++)
     {
         RGB view_ray(0);
         camera->genViewingRay(u, v, r);
-        traceRay(r, view_ray, 4);
+        traceRay(r, view_ray, 2);
         color += view_ray;
     }
 
@@ -157,7 +158,12 @@ bool Raytracer::russianRoulette(const RGB &reflectance, float &survivor)
 {
     float p = fmax(reflectance[0], fmax(reflectance[1], reflectance[2]));
     survivor = 1.0/p;
-    if (randf() > p) return true;
+    if (randf() > p)
+    {
+        //std::cout << "russianRoulette stop" << std::endl; 
+        return true;
+    }
+    //std::cout << "russianRoulette keep going" << std::endl; 
     return false;
 }
 
