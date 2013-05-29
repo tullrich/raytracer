@@ -1,5 +1,5 @@
 # Blender MTL File: 'custom.blend'
-# Material Count: 6
+# Material Count: 7
 
 newmtl Material
 Ns 96.078431
@@ -42,6 +42,15 @@ Ns 96.078431
 Ka 0.000000 0.000000 0.000000
 Kd 0.640000 0.535407 0.000000
 Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+
+newmtl Material.005
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.640000 0.592885 0.057666
+Ks 0.500000 0.077836 0.187406
 Ni 1.000000
 d 1.000000
 illum 2
