@@ -56,25 +56,11 @@ bool mesh_data::closestIntersection(const Ray &r, TraceResult &result) const
 			}
 		}
 	}
-/*
-	for (int i = 0; i < numFaces; ++i)
-	{
-		const prim_tri *indices = &faces[i];
-		//std::cout << "x " << indices->x << " y " << indices->y << " z " << indices->z << std::endl;
-		temp_result.tri = Triangle(verts[indices->x], verts[indices->z], verts[indices->y]);
-		//std::cout << temp_tri << std::endl;
-		if (r.intersects(temp_result.tri, temp_result.intersection))
-		{
-			if (temp_result.intersection.w < result.intersection.w || t == -1)
-			{
-				result = temp_result;
-				t = result.intersection.w;
-			}
-		}
-	}*/
 
 	return t != -1;
 }
+
+
 
 
 std::ostream& operator<<(std::ostream& o, const mesh_data& b)
