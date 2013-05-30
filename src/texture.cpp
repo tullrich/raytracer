@@ -19,4 +19,3 @@ bool Texture::load()
 }
 
 } /* namespace raytracer */
-gc
