@@ -18,12 +18,13 @@ class mesh_data; // forward declaration
 class TraceResult
 {
 public:
-	TraceResult() : intersection(0), material(NULL) {};
-	TraceResult(const glm::vec4 &intersection, const Triangle &tri, const Material *material);
+	TraceResult() : intersection(0), p(NULL) {};
+	TraceResult(const glm::vec4 &intersection, const Primitive *p);
 
-	glm::vec4 intersection; // barycentric coordinates representing the
-	Triangle tri; // triangle of impact
-	const Material *material; // ptr to the mesh of intersection
+	glm::vec3 biasedIntersectionPoint() const;
+
+	glm::vec4 intersection; // barycentric coordinates representing a point on p->face
+	const Primitive *p; // primitive of intersection
 };
 
 /**

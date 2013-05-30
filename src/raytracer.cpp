@@ -17,20 +17,19 @@ Raytracer::~Raytracer()
 {
 }
 
-RGB Raytracer::emittedRadiance(const Material &mat, const Triangle &tri, const glm::vec4 intersection)
+RGB Raytracer::emittedRadiance(const TraceResult &r)
 {
     return RGB(0);
 }
 
-RGB Raytracer::directRadiance(const Material &mat, const Triangle &tri, const glm::vec4 intersection)
+RGB Raytracer::directRadiance(const TraceResult &r)
 {
     RGB color(0);
     RGB per_light(0);
     TraceResult result;
     Ray to_light;
 
-    glm::vec3 N = tri.normal();
-    glm::vec3 point = adjustFloatingPointToward(tri.intersectionToPoint(intersection), N);
+    glm::vec3 point = r.biasedIntersectionPoint();
 
     for (Light::light_ptr light : scene->lights)
     {
@@ -39,21 +38,19 @@ RGB Raytracer::directRadiance(const Material &mat, const Triangle &tri, const gl
 
         if (scene->testVisibility(to_light, result))
         {
+            std::cout << "past the visibility test" << std::endl; 
             light->getAttenuatedRadiance(to_light, per_light);
-
-            glm::vec3 I = to_light.n;
-            color += per_light * (mat.diffuse/ (float) M_PI) * fmaxf(glm::dot(N, I), 0);
+            color += per_light * (r.p->BRDF(r.intersection) / (float) M_PI) * r.p->geometricTerm(to_light.n);
         }
     }
 
     return color;
 }
 
-RGB Raytracer::indirectRadiance(const Material &mat, const Triangle &tri, const glm::vec4 intersection, int depth)
+RGB Raytracer::indirectRadiance(const TraceResult &r, int depth)
 {
     RGB indirect_color(0);
-    glm::vec3 N = tri.normal();
-    glm::vec3 point = adjustFloatingPointToward(tri.intersectionToPoint(intersection), N);
+    glm::vec3 point = r.biasedIntersectionPoint();
 
 
     int numIndirectRays = 1;
@@ -63,11 +60,11 @@ RGB Raytracer::indirectRadiance(const Material &mat, const Triangle &tri, const 
         if(depth > 0)
         {
             float inverse_pdf = 0;
-            glm::vec3 rand_direction = uniformImportanceSampling(N, inverse_pdf);
+            glm::vec3 rand_direction = uniformImportanceSampling(r.p->surfaceNormal(), inverse_pdf);
             Ray indirect_ray(point, point + rand_direction);
             RGB per_ray_color; 
             traceRay(indirect_ray, per_ray_color, depth - 1);
-            indirect_color +=  survive * per_ray_color * mat.diffuse * fmaxf(glm::dot(N, rand_direction), 0) * 2.0f;
+            indirect_color +=  survive * per_ray_color * r.p->BRDF(r.intersection) * r.p->geometricTerm(rand_direction) * 2.0f;
         }
         
     }
@@ -89,9 +86,9 @@ bool Raytracer::traceRay(const Ray &r, RGB &color, int depth)
             std::cout << " got a hit on mesh "  << std::endl;
             once = true;
         }
-        color = emittedRadiance(*(result.material),  result.tri,  result.intersection);
-        color += directRadiance(*(result.material),  result.tri,  result.intersection);
-        color += indirectRadiance(*(result.material),  result.tri,  result.intersection, depth);
+        color = emittedRadiance(result);
+        color += directRadiance(result);
+        //color += indirectRadiance(result, depth);
         return true;
     }
 
@@ -106,12 +103,12 @@ void Raytracer::lightPixel(int u, int v)
     RGB color;
     Ray r;
 
-    int numViewRays = 500;
+    int numViewRays = 1;
     for(int i = 0; i < numViewRays ; i++)
     {
         RGB view_ray(0);
         camera->genViewingRay(u, v, r);
-        traceRay(r, view_ray, 2);
+        traceRay(r, view_ray, 1);
         color += view_ray;
     }
 

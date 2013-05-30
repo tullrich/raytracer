@@ -17,7 +17,12 @@ public:
 	Primitive() {};
 	virtual bool intersects(const Ray &r,  TraceResult &result) const = 0;
 	virtual bool intersects(const AABB &aabb) const = 0;
+	virtual glm::vec3 barycentricToPoint(const glm::vec4 &berycentric) const = 0;
 	virtual AABB bounds() const = 0;
+
+	virtual float geometricTerm(const glm::vec3 &direction) const = 0;
+	virtual glm::vec3 surfaceNormal() const = 0;
+	virtual glm::vec3 BRDF(const glm::vec4 &berycentric) const = 0;
 };
 
 /**
@@ -30,10 +35,15 @@ public:
 	TrianglePrimitive(const Triangle &face, const Material *material) : face(face), material(material) {};
 	virtual bool intersects(const Ray &r, TraceResult &result) const;
 	virtual bool intersects(const AABB &aabb) const;
+	virtual glm::vec3 barycentricToPoint(const glm::vec4 &berycentric) const;
 	virtual AABB bounds() const;
 
-	Triangle face;
+	virtual float geometricTerm(const glm::vec3 &direction) const;
+	virtual glm::vec3 surfaceNormal() const;
+	virtual glm::vec3 BRDF(const glm::vec4 &berycentric) const;
+	
 protected:
+	Triangle face;
 	const Material *material;
 };
 

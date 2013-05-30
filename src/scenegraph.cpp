@@ -22,7 +22,7 @@ bool SceneGraph::testVisibility(const Ray &r, TraceResult &result) const
 
 	if (traceRay(r, result))
 	{
-		vec3 intersect_point = result.tri.intersectionToPoint(result.intersection); 
+		vec3 intersect_point = result.p->barycentricToPoint(result.intersection); 
 		if (glm::length(intersect_point - r.p) < d)
 		{
 			return false;
@@ -39,29 +39,38 @@ void ButeForceSceneGraphImp::addEntity(Entity::entity_ptr entity)
 {
 	entities.push_back(entity);
 
-	//std::cout << "scene size now " << entities.size() << std::endl;
-	//std::cout << "\t adding " << *entity << std::endl;
+	for(mesh_data::mesh_ptr mesh : entity->meshes)
+	{
+		Primitive **fresh_primitives = mesh->allocatePrimitives();
+
+		for (int i = 0; i < mesh->numFaces; i++)
+		{
+			primitives.push_back(fresh_primitives[i]);
+		}
+
+		delete[] fresh_primitives;
+	}
 }
 
 
 bool ButeForceSceneGraphImp::traceRay(const Ray &r, TraceResult &result) const
 {
 	TraceResult temp_result;
-	float temp_t= -1;
+	bool found_one = false;
 
-	for (Entity::entity_ptr entity : entities)
+	for(Primitive *p : primitives)
 	{
-		if(entity->closestIntersection(r, temp_result))
+		if(p->intersects(r, temp_result))
 		{
-			if(temp_t == -1 || temp_result.intersection.w < result.intersection.w)
+			if (!found_one || temp_result.intersection.w < result.intersection.w)
 			{
+				found_one = true;
 				result = temp_result;
-				temp_t = result.intersection.w;
 			}
 		}
 	}
 
-	return temp_t != -1;
+	return found_one;
 }
 
 SceneGraph* SceneGraphFactory::getSceneGraph()

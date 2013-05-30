@@ -39,9 +39,9 @@ public:
 
 private:
 
-	RGB emittedRadiance(const Material &mat, const Triangle &tri, const glm::vec4 intersection);
-	RGB directRadiance(const Material &mat, const Triangle &tri, const glm::vec4 intersection);
-	RGB indirectRadiance(const Material &mat, const Triangle &tri, const glm::vec4 intersection, int depth);
+	RGB emittedRadiance(const TraceResult &r);
+	RGB directRadiance(const TraceResult &r);
+	RGB indirectRadiance(const TraceResult &r, int depth);
 
 	bool traceRay(const Ray &r, RGB &color, int depth);
 	bool russianRoulette(const RGB &reflectance, float &survivor);

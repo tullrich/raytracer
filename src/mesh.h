@@ -50,15 +50,6 @@ public:
 	void AABBContainMesh(AABB &aabb) const;
 
 	/**
-	 * Computes the closest triangle in this mesh intersectioning {@Ray r}.
-	 * @param  r            ray to compute intersection
-	 * @param  intersection returned barycentric coordinates with respect to tri
-	 * @param  tri          returned closest intersecting triangle
-	 * @return              true if some prim_tri intersects this mesh
-	 */
-	bool closestIntersection(const Ray &r, TraceResult &result) const;
-
-	/**
 	 * Allocate a fresh buffer of primitives from the contents of this mesh
 	 * Memory is owned by the caller
 	 * @return       array of {@link Primitive)s of size this->numFaces

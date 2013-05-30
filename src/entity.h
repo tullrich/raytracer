@@ -31,8 +31,6 @@ public:
 	 */
 	void addMeshComponent(mesh_data::mesh_ptr mesh);
 
-	bool closestIntersection(const Ray &r, TraceResult &result) const;
-
 	/**
 	 * position of the entity in world space
 	 */

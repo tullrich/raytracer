@@ -24,29 +24,6 @@ void Entity::addMeshComponent(mesh_data::mesh_ptr mesh)
 	}
 }
 
-
-bool Entity::closestIntersection(const Ray &r, TraceResult &result) const
-{
-	TraceResult temp_result;
-	float temp_t= -1;
-
-	for (mesh_data::mesh_ptr mesh : meshes)
-	{
-		if (mesh->closestIntersection(r, temp_result))
-		{
-			if(temp_t == -1 || temp_result.intersection.w < result.intersection.w)
-			{
-				result = temp_result;
-				temp_t = result.intersection.w;
-			}
-		}
-	}
-
-	return temp_t != -1;
-}
-
-
-
 std::ostream& operator<<(std::ostream& o, const Entity& b)
 {
 	o << "Entity '" << b.name << "' {\n" \

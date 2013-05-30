@@ -10,8 +10,7 @@ Texture::Texture(const std::string filepath) : img(NULL)
 
 bool Texture::isLoaded() const
 {
-	//TODO:: return pointer = null
-	return false;
+	return img != NULL;
 }
 
 bool Texture::load()

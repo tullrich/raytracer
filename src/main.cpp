@@ -259,8 +259,8 @@ int main(int argc, char *argv[])
 
     tracer->setCamera(cam);
 
-    light = new AreaLight("custom", glm::vec3(1, 0, 0), glm::vec3(0, 0, 1));
-    //light = new PointLight("custom");
+    //light = new AreaLight("custom", glm::vec3(1, 0, 0), glm::vec3(0, 0, 1));
+    light = new PointLight("custom");
     light->setLocation(glm::vec3(-0.5f, 1.90, -0.5f), glm::vec3(0));
     light->setColor(RGB(0), RGB(7.0f, 7.0f, 7.0f), RGB(0));
     light->setAttenuation(1.0f, 0.00f, 0.005f);

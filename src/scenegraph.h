@@ -45,6 +45,7 @@ public:
 	virtual void build() {};
 private:
 	EntityList entities;
+	std::list<Primitive*> primitives;
 };
 
 /**

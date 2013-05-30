@@ -342,8 +342,6 @@ mesh_data::mesh_ptr AssimpAssetReader::buildMesh(const aiNode &node, int mMeshes
 	unsigned int mesh_index = node.mMeshes[mMeshes_index];
 	aiMesh *ai_mesh = scene->mMeshes[mesh_index];
 
-	std::cout << "mesh GetNumUVChannels " << ai_mesh->GetNumUVChannels() << std::endl; 
-
 	// copy the verts to memory managed by us
 	verts = vertBufferForAiVector3D(ai_mesh->mNumVertices, ai_mesh->mVertices, worldSpace);
 	// copy the face indices to memory managed by us
@@ -355,7 +353,7 @@ mesh_data::mesh_ptr AssimpAssetReader::buildMesh(const aiNode &node, int mMeshes
 	mesh_data::mesh_ptr pMesh;
 	if(ai_mesh->GetNumUVChannels() > 0 && ai_mesh->mNumUVComponents[0] == 2) 
 	{
-		// we only support 2 component texture lookups and texture 0
+		// we only support 2 component texture lookups on texture 0
 		textured_mesh_data *texture_mesh = new textured_mesh_data();
 		// copy the verts to memory managed by us
 		uvs = uvBufferForAiVector3D(ai_mesh->mNumVertices, ai_mesh->mTextureCoords[0]);
