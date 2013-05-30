@@ -244,7 +244,6 @@ std::string parentPath(const std::string filename)
     std::string filename_noext;
     filename_noext = boost::filesystem::path(filename).parent_path().string();
 
-    std::cout << "fillll " << filename << std::endl; 
     return filename_noext;
 }
 
