@@ -47,10 +47,10 @@ class TextureMaterial : public Material
 public:
 	TextureMaterial(const std::string name) : Material(name) {};
 
-	void setDiffuseTexture(const Texture &t) { map_diffuse = &t; };
-	void setSpecularTexture(const Texture &t) { map_specular = &t; };
-	void setEmissiveTexture(const Texture &t) { map_emissive = &t; };
-	void setNormalTexture(const Texture &t) { map_normal = &t; };
+	void setDiffuseTexture(const Texture *t) { map_diffuse = t; };
+	void setSpecularTexture(const Texture *t) { map_specular = t; };
+	void setEmissiveTexture(const Texture *t) { map_emissive = t; };
+	void setNormalTexture(const Texture *t) { map_normal = t; };
 
 	virtual void BRDF();
 

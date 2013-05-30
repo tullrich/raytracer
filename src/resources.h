@@ -157,7 +157,7 @@ private:
 	void computeTransformForNode(aiNode *node, aiMatrix4x4 &childToWorld)  const;
 
 	bool usesTextures(const aiMaterial &ai_mat);
-	Texture& getTexture(aiTextureType type, const aiMaterial &ai_mat);
+	Texture* getTexture(aiTextureType type, const aiMaterial &ai_mat);
 
 protected:
 	Assimp::Importer importer;

@@ -251,7 +251,7 @@ void getAiMatFloat(const aiMaterial &ai_mat, const char* pKey, unsigned int type
 	ai_mat.Get(pKey, type, idx, copy);
 }
 
-Texture& AssimpAssetReader::getTexture(aiTextureType type, const aiMaterial &ai_mat)
+Texture* AssimpAssetReader::getTexture(aiTextureType type, const aiMaterial &ai_mat)
 {
 	Texture *t = NULL;
 
@@ -281,7 +281,7 @@ Texture& AssimpAssetReader::getTexture(aiTextureType type, const aiMaterial &ai_
 		}
 	}
 
-	return *t;
+	return t;
 }
 
 bool AssimpAssetReader::usesTextures(const aiMaterial &ai_mat)
@@ -307,6 +307,7 @@ Material* AssimpAssetReader::getMaterial(const int mMaterialIndex)
 		{
 			// this material has some textures, set them up
 			TextureMaterial *tex_m = new TextureMaterial(name.C_Str());
+
 			tex_m->setDiffuseTexture(getTexture(aiTextureType_DIFFUSE, ai_mat));
 			tex_m->setSpecularTexture(getTexture(aiTextureType_SPECULAR, ai_mat));
 			tex_m->setEmissiveTexture(getTexture(aiTextureType_EMISSIVE, ai_mat));
