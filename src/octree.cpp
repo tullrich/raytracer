@@ -331,8 +331,10 @@ float OctreeSceneGraphImp::optimalRootWidth()
 {
 	AABB bounds;
 
+	int i = 0;
 	for (Primitive *p : root->primitives)
 	{
+		//std::cout << "check for containment " << p->bounds() << std::endl; 
 		AABBContainPrimitive(bounds, *p);
 	}
 
@@ -403,27 +405,6 @@ bool OctreeSceneGraphImp::traceRay(const Ray &r, TraceResult &result) const
 	AABB root_bounds;
 	root->aabb(root_bounds);
 
-/*	if(root_bounds.min.x < 0)
-	{
-		mod_r.p.x = root_bounds.min.x - mod_r.p.x;
-		root_bounds.max.x = root_bounds.min.x - root_bounds.max.x;
-		root_bounds.min.x = 0;
-	}
-
-	if(root_bounds.min.y < 0)
-	{
-		mod_r.p.y = root_bounds.min.y - mod_r.p.y;
-		root_bounds.max.y = root_bounds.min.y - root_bounds.max.y;
-		root_bounds.min.y = 0;
-	}
-
-	if(root_bounds.min.z < 0)
-	{
-		mod_r.p.z = root_bounds.min.z - mod_r.p.z;
-		root_bounds.max.z = root_bounds.min.z - root_bounds.max.z;
-		root_bounds.min.z = 0;
-	}*/
-
 	float tx0 = (root_bounds.min.x - mod_r.p.x) / mod_r.n.x; // entry t on x-axis
 	float tx1 = (root_bounds.max.x - mod_r.p.x) / mod_r.n.x; // exit t on x-axis
 	float ty0 = (root_bounds.min.y - mod_r.p.y) / mod_r.n.y; // entry t on y-axis
@@ -450,15 +431,14 @@ void OctreeSceneGraphImp::addEntity(Entity::entity_ptr entity)
 
 	for(mesh_data::mesh_ptr mesh : entity->meshes)
 	{
-		for(int i = 0; i < mesh->numFaces; i++)
+		Primitive **primitives = mesh->allocatePrimitives();
+
+		for (int i = 0; i < mesh->numFaces; i++)
 		{
-			const prim_tri *indices = &mesh->faces[i];
-
-			Triangle t(mesh->verts[indices->x], mesh->verts[indices->y], mesh->verts[indices->z]);
-			Primitive *fresh = new TrianglePrimitive(t, mesh->mat);
-
-			root->append(fresh);
+			root->append(primitives[i]);
 		}
+
+		delete[] primitives;
 	}
 
 }
