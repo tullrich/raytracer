@@ -238,4 +238,21 @@ glm::vec3 Raytracer::cosineImportanceSampling(const glm::vec3 normal, float &inv
      inverse_pdf = M_PI / cos_theta;
 }
 
+std::string parentPath(const std::string filename)
+{
+    std::string filename_noext;
+    filename_noext = boost::filesystem::path(filename).parent_path().string();
+
+    std::cout << "fillll " << filename << std::endl; 
+    return filename_noext;
+}
+
+std::string appendFilename(const std::string parent_path, const std::string filename)
+{
+    boost::filesystem::path full_path(parent_path);
+    full_path /= filename; // appends filename to full_path with the preferred separator
+
+    return full_path.make_preferred().string();
+}
+
 } /* namespace raytracer */

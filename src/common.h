@@ -77,6 +77,9 @@ inline float randf()
 	return (float)rand()/(float)RAND_MAX;
 }
 
+std::string parentPath(const std::string path);
+std::string appendFilename(const std::string path, const std::string filename);
+
 extern bool debugvar;
 
 std::ostream& operator<<(std::ostream& o, const glm::vec3& b);
