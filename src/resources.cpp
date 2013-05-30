@@ -42,6 +42,7 @@ bool AssimpAssetReader::open(const std::string& path)
 	}
 
 	open_file = path;
+	parent_path = parentPath(open_file);
 	return true;
 }
 
@@ -204,6 +205,18 @@ glm::vec3* vertBufferForAiVector3D(int mNumVertices, aiVector3D *verts, aiMatrix
 	return buf;
 }
 
+glm::vec2* uvBufferForAiVector3D(int mNumVertices, aiVector3D *verts)
+{
+	glm::vec2 *buf = new glm::vec2[mNumVertices];
+
+	for (int i = 0; i < mNumVertices; i++)
+	{
+		buf[i] = glm::vec2(verts[i].x, verts[i].y);
+	}
+
+	return buf;
+}
+
 prim_tri* faceBufferForAiFace(int mNumFaces, aiFace *faces)
 {
 	prim_tri *buf = new prim_tri[mNumFaces];
@@ -238,6 +251,46 @@ void getAiMatFloat(const aiMaterial &ai_mat, const char* pKey, unsigned int type
 	ai_mat.Get(pKey, type, idx, copy);
 }
 
+Texture& AssimpAssetReader::getTexture(aiTextureType type, const aiMaterial &ai_mat)
+{
+	Texture *t = NULL;
+
+	if (ai_mat.GetTextureCount(type) > 0)
+	{
+		aiString tex_name;
+		ai_mat.GetTexture(type, 0, &tex_name, NULL, NULL, NULL, NULL, NULL);
+
+		if (tex_name.length)
+		{
+			std::string filename = appendFilename(parent_path, tex_name.C_Str());
+
+			t = TextureManager::getInstance().get(filename);
+			if(!t)
+			{
+				t = new Texture(filename);
+				if(t->load())
+				{
+					std::cout << "adding t " << filename << std::endl; 
+					TextureManager::getInstance().add(filename, *t);
+				}
+			}
+			else
+			{
+				std::cout << "found t " << filename << std::endl; 
+			}
+		}
+	}
+
+	return *t;
+}
+
+bool AssimpAssetReader::usesTextures(const aiMaterial &ai_mat)
+{
+	return ai_mat.GetTextureCount(aiTextureType_DIFFUSE) + 
+		ai_mat.GetTextureCount(aiTextureType_SPECULAR) + 
+		ai_mat.GetTextureCount(aiTextureType_EMISSIVE) + 
+		ai_mat.GetTextureCount(aiTextureType_NORMALS);
+}
 
 Material* AssimpAssetReader::getMaterial(const int mMaterialIndex)
 {
@@ -245,17 +298,32 @@ Material* AssimpAssetReader::getMaterial(const int mMaterialIndex)
 
 	if (m == NULL)
 	{
-		aiMaterial *ai_mat = scene->mMaterials[mMaterialIndex];
+		const aiMaterial &ai_mat = *(scene->mMaterials[mMaterialIndex]);
 
 		aiString name;
-		ai_mat->Get(AI_MATKEY_NAME, name);
-		m = new Material(name.C_Str());
+		ai_mat.Get(AI_MATKEY_NAME, name);
+		
+		if (usesTextures(ai_mat))
+		{
+			// this material has some textures, set them up
+			TextureMaterial *tex_m = new TextureMaterial(name.C_Str());
+			tex_m->setDiffuseTexture(getTexture(aiTextureType_DIFFUSE, ai_mat));
+			tex_m->setSpecularTexture(getTexture(aiTextureType_SPECULAR, ai_mat));
+			tex_m->setEmissiveTexture(getTexture(aiTextureType_EMISSIVE, ai_mat));
+			tex_m->setNormalTexture(getTexture(aiTextureType_NORMALS, ai_mat));
+			
+			m = tex_m;
+		}
+		else
+		{
+			m = new Material(name.C_Str());
+		}
 
-		getAiMatColor(*ai_mat, AI_MATKEY_COLOR_DIFFUSE, m->diffuse);
-		getAiMatColor(*ai_mat, AI_MATKEY_COLOR_AMBIENT, m->ambient);
-		getAiMatColor(*ai_mat, AI_MATKEY_COLOR_SPECULAR, m->specular);
-		getAiMatColor(*ai_mat, AI_MATKEY_COLOR_EMISSIVE, m->emissive);
-		getAiMatFloat(*ai_mat, AI_MATKEY_SHININESS, m->shineness);
+		getAiMatColor(ai_mat, AI_MATKEY_COLOR_DIFFUSE, m->diffuse);
+		getAiMatColor(ai_mat, AI_MATKEY_COLOR_AMBIENT, m->ambient);
+		getAiMatColor(ai_mat, AI_MATKEY_COLOR_SPECULAR, m->specular);
+		getAiMatColor(ai_mat, AI_MATKEY_COLOR_EMISSIVE, m->emissive);
+		getAiMatFloat(ai_mat, AI_MATKEY_SHININESS, m->shineness);
 
 		MaterialManager::getInstance().add(mMaterialIndex, *m);
 	}
@@ -265,6 +333,7 @@ Material* AssimpAssetReader::getMaterial(const int mMaterialIndex)
 
 mesh_data::mesh_ptr AssimpAssetReader::buildMesh(const aiNode &node, int mMeshes_index, aiMatrix4x4 &worldSpace)
 {
+	glm::vec2 *uvs   = NULL;
 	glm::vec3 *verts = NULL;
 	prim_tri *faces  = NULL;
 	Material *mat    = NULL;
@@ -272,24 +341,35 @@ mesh_data::mesh_ptr AssimpAssetReader::buildMesh(const aiNode &node, int mMeshes
 	unsigned int mesh_index = node.mMeshes[mMeshes_index];
 	aiMesh *ai_mesh = scene->mMeshes[mesh_index];
 
-	// allocate and set name
-	mesh_data::mesh_ptr pMesh(new mesh_data());
-	//pMesh->setName(std::string (mesh_index));
+	std::cout << "mesh GetNumUVChannels " << ai_mesh->GetNumUVChannels() << std::endl; 
 
 	// copy the verts to memory managed by us
 	verts = vertBufferForAiVector3D(ai_mesh->mNumVertices, ai_mesh->mVertices, worldSpace);
-	pMesh->setVertices(ai_mesh->mNumVertices, verts);
-
 	// copy the face indices to memory managed by us
 	faces = faceBufferForAiFace(ai_mesh->mNumFaces, ai_mesh->mFaces);
-	pMesh->setFaces(ai_mesh->mNumFaces, faces);
-
-	// setup the material pointer
+	// create the material
 	mat = getMaterial(ai_mesh->mMaterialIndex);
-	if(mat)
+
+	// create the mesh
+	mesh_data::mesh_ptr pMesh;
+	if(ai_mesh->GetNumUVChannels() > 0 && ai_mesh->mNumUVComponents[0] == 2) 
 	{
-		pMesh->setMaterial(mat);
+		// we only support 2 component texture lookups and texture 0
+		textured_mesh_data *texture_mesh = new textured_mesh_data();
+		// copy the verts to memory managed by us
+		uvs = uvBufferForAiVector3D(ai_mesh->mNumVertices, ai_mesh->mTextureCoords[0]);
+		texture_mesh->setUVs(uvs);
+		pMesh = mesh_data::mesh_ptr(texture_mesh);
 	}
+	else
+	{	
+		// allocate and set name
+		pMesh = mesh_data::mesh_ptr(new mesh_data());
+	}
+	pMesh->setName("" + mesh_index); // TODO: FIXME
+	pMesh->setVertices(ai_mesh->mNumVertices, verts);
+	pMesh->setFaces(ai_mesh->mNumFaces, faces);
+	pMesh->setMaterial(mat);
 
 	// add it to the meshmanager
 	// TODO: broken
@@ -407,6 +487,10 @@ unique_ptr<AssetReader> ResourceLoaderFactory::getReaderForFiletype(const string
 		return unique_ptr<AssimpAssetReader>(new AssimpAssetReader());
 	}
 	else if (std::regex_match (filename, std::regex(".*\\.dae") ))
+	{
+		return unique_ptr<AssimpAssetReader>(new AssimpAssetReader());
+	}
+	else if (std::regex_match (filename, std::regex(".*\\.blend") ))
 	{
 		return unique_ptr<AssimpAssetReader>(new AssimpAssetReader());
 	}

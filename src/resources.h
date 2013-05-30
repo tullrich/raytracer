@@ -9,6 +9,7 @@
 #include "mesh.h"
 #include "camera.h"
 #include "light.h"
+#include "texture.h"
 
 #include <assimp/Importer.hpp> 
 #include <assimp/scene.h>
@@ -155,11 +156,14 @@ private:
 
 	void computeTransformForNode(aiNode *node, aiMatrix4x4 &childToWorld)  const;
 
+	bool usesTextures(const aiMaterial &ai_mat);
+	Texture& getTexture(aiTextureType type, const aiMaterial &ai_mat);
+
 protected:
 	Assimp::Importer importer;
 	const aiScene* scene;
 	std::string open_file;
-
+	std::string parent_path;
 
 };
 
