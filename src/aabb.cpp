@@ -15,13 +15,14 @@ static inline float rtfmax(float a, float b)
 
 void AABBContainVertex(AABB &aabb, const glm::vec3 &vertex)
 {
-	if (aabb.max.x > vertex.x) aabb.max.x = vertex.x;
-	if (aabb.min.x < vertex.x) aabb.min.x = vertex.x;
+	if (aabb.max.x < vertex.x) aabb.max.x = vertex.x;
+	if (aabb.min.x > vertex.x) aabb.min.x = vertex.x;
 
-	if (aabb.max.y > vertex.y) aabb.max.y = vertex.y;
-	if (aabb.min.y < vertex.y) aabb.min.y = vertex.y;
+	if (aabb.max.y < vertex.y) aabb.max.y = vertex.y;
+	if (aabb.min.y > vertex.y) aabb.min.y = vertex.y;
 
-	if (aabb.max.z > vertex.z) aabb.max.z = vertex.z;
+	if (aabb.max.z < vertex.z) aabb.max.z = vertex.z;
+	if (aabb.min.z > vertex.z) aabb.min.z = vertex.z;
 }
 
 
