@@ -2,6 +2,16 @@
 
 namespace raytracer {
 
+void Material::BRDF()
+{
+
+}
+
+void TextureMaterial::BRDF()
+{
+
+}
+
 std::ostream& operator<<(std::ostream& o, const Material& b) 
 {
 	return o << "Material '" << b.name << "' {\n" << \
