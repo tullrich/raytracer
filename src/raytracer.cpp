@@ -1,6 +1,7 @@
 #include "raytracer.h"
 #include <math.h>
 #include <ctime>
+#include <boost/filesystem.hpp>
 
 using namespace cgutils;
 
