@@ -1,9 +1,16 @@
 #include "rtimage.h"
 #include <math.h>
+#include <regex>
 
 using namespace std;
 
 namespace raytracer {
+
+#define IMG_EXT_REGEX ".*\\.(.*)"
+#define IMG_BMP_EXT "\\.bmp"
+#define IMG_JPEG_EXT "\\.jpg"
+#define IMG_PNG_EXT "\\.png"
+	 //(\\.jpeg)
 
 Image::Image(int width, int height)
 {
@@ -91,6 +98,40 @@ rtimage* allocateImage(int wx, int hx)
 bool saveImage(rtimage *img, const char *filename)
 {
 	return FreeImage_Save(FIF_PNG, img, filename, 0);
+}
+
+FREE_IMAGE_FORMAT getFreeimageFormat(const std::string &filepath)
+{
+	FREE_IMAGE_FORMAT fif = FIF_UNKNOWN;
+	fif = FreeImage_GetFileType(filepath.c_str(), 0);
+	if(fif == FIF_UNKNOWN) 
+	{
+		fif = FreeImage_GetFIFFromFilename(filepath.c_str());
+	}
+	if(!FreeImage_FIFSupportsReading(fif)) 
+	{
+		return FIF_UNKNOWN;
+	}
+
+	return fif;
+}
+
+
+rtimage* loadImage(const std::string &filepath)
+{
+	image::initImageSystem();
+
+	FREE_IMAGE_FORMAT format = getFreeimageFormat(filepath);
+	if(format != FIF_UNKNOWN)
+	{
+		rtimage* img = NULL;
+		if(img  = FreeImage_Load(format, filepath.c_str(), 0))
+		{
+			return img;
+		}
+	}
+
+	return NULL;
 }
 
 } /* namespace image */

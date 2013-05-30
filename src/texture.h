@@ -2,12 +2,19 @@
 #define _TEXTURE_H_ 
 
 #include "common.h"
+#include "rtimage.h"
 
 namespace raytracer {
+
+using namespace cgutils;
 
 class Texture
 {
 public:
+
+	/**
+	 * Texture representing filepath on disk
+	 */
 	Texture(const std::string filepath);
 
 	/**
@@ -23,8 +30,12 @@ public:
 	bool isLoaded() const;
 
 protected:
+	image::rtimage *img;
 	std::string filepath;
 };
+
+
+class  TextureManager : public ResourceManager<std::string, Texture> {};
 
 } /* raytracer */
 
