@@ -29,8 +29,12 @@ public:
 	 */
 	bool isLoaded() const;
 
+
+	glm::vec3 lookUp(const TexCoord &uv) const;
+
 protected:
 	image::rtimage *img;
+	unsigned int img_height, img_width;
 	std::string filepath;
 };
 

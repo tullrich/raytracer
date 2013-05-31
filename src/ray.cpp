@@ -12,7 +12,7 @@ TraceResult::TraceResult(const glm::vec4 &intersection, const Primitive *p)
 
 glm::vec3 TraceResult::biasedIntersectionPoint() const
 {
-	adjustFloatingPointToward(p->barycentricToPoint(intersection), p->surfaceNormal());
+	return adjustFloatingPointToward(p->barycentricToPoint(intersection), p->surfaceNormal());
 }
 
 Ray::Ray(glm::vec3 p, glm::vec3 q)

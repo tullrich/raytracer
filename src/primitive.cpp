@@ -35,9 +35,28 @@ float TrianglePrimitive::geometricTerm(const glm::vec3 &direction) const
 	return fmaxf(glm::dot(face.normal(), direction), 0);
 }
 
+glm::vec3 TrianglePrimitive::Le(const glm::vec4 &berycentric) const
+{
+	return material->Le(NULL);
+}
+
 glm::vec3 TrianglePrimitive::BRDF(const glm::vec4 &berycentric) const
 {
-	return material->diffuse;
+	return material->BRDF(NULL);
+}
+
+glm::vec3 UVTrianglePrimitive::Le(const glm::vec4 &berycentric) const
+{
+	TexCoord uv_at_point = uv.interpolateUV(berycentric);
+
+	return material->Le(&uv_at_point);
+}
+
+glm::vec3 UVTrianglePrimitive::BRDF(const glm::vec4 &berycentric) const
+{
+	TexCoord uv_at_point = uv.interpolateUV(berycentric);
+
+	return material->BRDF(&uv_at_point);
 }
 
 bool TrianglePrimitive::intersects(const AABB &aabb) const

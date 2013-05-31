@@ -2,14 +2,38 @@
 
 namespace raytracer {
 
-void Material::BRDF()
+RGB Material::BRDF(const TexCoord *uv) const
 {
-
+	return diffuse;
 }
 
-void TextureMaterial::BRDF()
+RGB TextureMaterial::BRDF(const TexCoord *uv) const
 {
+	if(uv && map_diffuse)
+	{
+	return map_diffuse->lookUp(*uv);
+	}
 
+	std::cout << "map_diffuse " << map_diffuse << " " << uv << std::endl; 
+
+	return Material::BRDF(uv);
+}
+
+RGB Material::Le(const TexCoord *uv) const
+{
+	return emissive;
+}
+
+RGB TextureMaterial::Le(const TexCoord *uv) const
+{
+	if(uv && map_emissive)
+	{
+		return map_emissive->lookUp(*uv);
+	}
+
+	std::cout << "map_emissive " << map_emissive << " " << uv << std::endl; 
+
+	return Material::Le(uv);
 }
 
 std::ostream& operator<<(std::ostream& o, const Material& b) 

@@ -23,6 +23,7 @@ public:
 	virtual float geometricTerm(const glm::vec3 &direction) const = 0;
 	virtual glm::vec3 surfaceNormal() const = 0;
 	virtual glm::vec3 BRDF(const glm::vec4 &berycentric) const = 0;
+	virtual glm::vec3 Le(const glm::vec4 &berycentric) const = 0;
 };
 
 /**
@@ -41,6 +42,7 @@ public:
 	virtual float geometricTerm(const glm::vec3 &direction) const;
 	virtual glm::vec3 surfaceNormal() const;
 	virtual glm::vec3 BRDF(const glm::vec4 &berycentric) const;
+	virtual glm::vec3 Le(const glm::vec4 &berycentric) const;
 	
 protected:
 	Triangle face;
@@ -55,7 +57,8 @@ class UVTrianglePrimitive : public TrianglePrimitive
 public:
 	UVTrianglePrimitive() {};
 	UVTrianglePrimitive(const Triangle &face, const UVTriangle &uv, const Material *material) : TrianglePrimitive(face, material), uv(uv) {};
-
+	virtual glm::vec3 BRDF(const glm::vec4 &berycentric) const;
+	virtual glm::vec3 Le(const glm::vec4 &berycentric) const;
 private:
 	UVTriangle uv;
 };

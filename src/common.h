@@ -41,7 +41,7 @@ public:
 
 	/**
 	 * converts a vec3 containing barycentric coordinates relative to this triangle
-	 * into a point on the surface of this
+	 * into a point
 	 * @param  intersection barycentric coordinates, |intersection| = 1.0
 	 * @return              intersection point on the surface of this triangle
 	 */
@@ -62,6 +62,14 @@ public:
 	TexCoord A;
 	TexCoord B;
 	TexCoord C;
+
+	/**
+	 * converts a vec2 containing barycentric coordinates relative to this triangle
+	 * into the UVs at that point
+	 * @param  intersection barycentric coordinates, |intersection| = 1.0
+	 * @return              intersection point on the surface of this triangle
+	 */
+	TexCoord interpolateUV(const glm::vec4 &intersection) const;
 };
 
 

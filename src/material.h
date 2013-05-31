@@ -17,7 +17,8 @@ public:
 	Material() : name(""), diffuse(0), specular(0), ambient(0), emissive(0), shineness(0) { };
 	Material(const std::string name) : name(name), diffuse(0), specular(0), ambient(0), emissive(0), shineness(0) { };
 
-	virtual void BRDF();
+	virtual glm::vec3 BRDF(const TexCoord *uv) const;
+	virtual glm::vec3 Le(const TexCoord *uv) const;
 
 	/**
 	 * material name
@@ -52,7 +53,8 @@ public:
 	void setEmissiveTexture(const Texture *t) { map_emissive = t; };
 	void setNormalTexture(const Texture *t) { map_normal = t; };
 
-	virtual void BRDF();
+	virtual glm::vec3 BRDF(const TexCoord *uv) const;
+	virtual glm::vec3 Le(const TexCoord *uv) const;
 
 protected:
 	const Texture *map_diffuse, *map_specular, *map_emissive, *map_normal;

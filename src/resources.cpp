@@ -353,6 +353,7 @@ mesh_data::mesh_ptr AssimpAssetReader::buildMesh(const aiNode &node, int mMeshes
 	mesh_data::mesh_ptr pMesh;
 	if(ai_mesh->GetNumUVChannels() > 0 && ai_mesh->mNumUVComponents[0] == 2) 
 	{
+		std::cout << "got a mesh with uvs" << std::endl; 
 		// we only support 2 component texture lookups on texture 0
 		textured_mesh_data *texture_mesh = new textured_mesh_data();
 		// copy the verts to memory managed by us
@@ -362,6 +363,7 @@ mesh_data::mesh_ptr AssimpAssetReader::buildMesh(const aiNode &node, int mMeshes
 	}
 	else
 	{	
+		std::cout << "got a mesh without uvs" << std::endl; 
 		// allocate and set name
 		pMesh = mesh_data::mesh_ptr(new mesh_data());
 	}

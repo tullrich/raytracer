@@ -19,7 +19,7 @@ Raytracer::~Raytracer()
 
 RGB Raytracer::emittedRadiance(const TraceResult &r)
 {
-    return RGB(0);
+    return 2.0f * r.p->Le(r.intersection);
 }
 
 RGB Raytracer::directRadiance(const TraceResult &r)
@@ -38,7 +38,6 @@ RGB Raytracer::directRadiance(const TraceResult &r)
 
         if (scene->testVisibility(to_light, result))
         {
-            std::cout << "past the visibility test" << std::endl; 
             light->getAttenuatedRadiance(to_light, per_light);
             color += per_light * (r.p->BRDF(r.intersection) / (float) M_PI) * r.p->geometricTerm(to_light.n);
         }
@@ -88,7 +87,7 @@ bool Raytracer::traceRay(const Ray &r, RGB &color, int depth)
         }
         color = emittedRadiance(result);
         color += directRadiance(result);
-        //color += indirectRadiance(result, depth);
+        color += indirectRadiance(result, depth);
         return true;
     }
 
@@ -103,12 +102,12 @@ void Raytracer::lightPixel(int u, int v)
     RGB color;
     Ray r;
 
-    int numViewRays = 1;
+    int numViewRays = 50;
     for(int i = 0; i < numViewRays ; i++)
     {
         RGB view_ray(0);
         camera->genViewingRay(u, v, r);
-        traceRay(r, view_ray, 1);
+        traceRay(r, view_ray, 2);
         color += view_ray;
     }
 
@@ -141,7 +140,6 @@ void Raytracer::run()
     int columnsPerThread = img.width / numThreads;
     for (int i = 0; i < numThreads; i++)
     {  
-
         group.add_thread(new boost::thread(&Raytracer::trace, this, i * columnsPerThread, (i+1) * columnsPerThread));
     }
     group.join_all();
@@ -191,6 +189,11 @@ std::ostream& operator<<(std::ostream& o, const Triangle& b)
 }
 
 glm::vec3 Triangle::intersectionToPoint(const glm::vec4 &intersection) const
+{
+    return intersection.x * A + intersection.y * B + intersection.z * C;
+}
+
+TexCoord UVTriangle::interpolateUV(const glm::vec4 &intersection) const
 {
     return intersection.x * A + intersection.y * B + intersection.z * C;
 }
