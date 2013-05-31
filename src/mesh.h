@@ -6,6 +6,7 @@
 #include <string>
 #include "common.h"
 #include "aabb.h"
+#include "primitive.h"
 #include "ray.h"
 
 namespace raytracer {
@@ -57,6 +58,13 @@ public:
 	 */
 	bool closestIntersection(const Ray &r, TraceResult &result) const;
 
+	/**
+	 * Allocate a fresh buffer of primitives from the contents of this mesh
+	 * Memory is owned by the caller
+	 * @return       array of {@link Primitive)s of size this->numFaces
+	 */
+	virtual Primitive** allocatePrimitives() const;
+
 
 	std::string name;
 	
@@ -75,6 +83,22 @@ private:
 	 * access to private members
 	 */
 	friend std::ostream& operator<<(std::ostream& o, const mesh_data& b);
+};
+
+class textured_mesh_data : public mesh_data
+{
+public:
+	textured_mesh_data() :  uvs(NULL) {};
+
+	void setUVs(const TexCoord *ptr);
+
+	virtual Primitive** allocatePrimitives() const;
+
+	/**
+	 * Array of UV coordinates for each vertex. The size of this array is
+	 * numVertices
+	 */
+	const TexCoord *uvs;
 };
 
 /**

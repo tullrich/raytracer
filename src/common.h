@@ -27,6 +27,7 @@ namespace raytracer {
 #define FLOAT_ERROR 0.0001f
 
 typedef glm::vec3 RGB;
+typedef glm::vec2 TexCoord;
 
 class Triangle 
 {
@@ -47,6 +48,20 @@ public:
 	glm::vec3 intersectionToPoint(const glm::vec4 &intersection) const;
 
 	glm::vec3 normal()  const;
+};
+
+/**
+ * Holds UVS for a triangle
+ */
+class UVTriangle
+{
+public:
+	UVTriangle() : A(0), B(0), C(0) {};
+	UVTriangle(TexCoord a, TexCoord b, TexCoord c) : A(a), B(b), C(c) {}; 
+	
+	TexCoord A;
+	TexCoord B;
+	TexCoord C;
 };
 
 

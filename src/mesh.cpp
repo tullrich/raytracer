@@ -35,31 +35,39 @@ void mesh_data::setFaces(int count, const prim_tri *ptr)
 	faces    = ptr;
 }
 
-
-bool mesh_data::closestIntersection(const Ray &r, TraceResult &result) const
+Primitive** mesh_data::allocatePrimitives() const
 {
-	TraceResult temp_result;
-	temp_result.material = mat;
-	float t = -1;
-
-	for (int i = 0; i < numFaces; ++i)
+	TrianglePrimitive **primitives = new TrianglePrimitive*[numFaces];
+	for(int i = 0; i < numFaces; i++)
 	{
 		const prim_tri *indices = &faces[i];
 
-		temp_result.tri = Triangle(verts[indices->x], verts[indices->y], verts[indices->z]);
-		if (r.intersects(temp_result.tri, temp_result.intersection))
-		{
-			if (temp_result.intersection.w < result.intersection.w || t == -1)
-			{
-				result = temp_result;
-				t = result.intersection.w;
-			}
-		}
+		Triangle t(verts[indices->x], verts[indices->y], verts[indices->z]);
+		primitives[i] = new TrianglePrimitive(t, mat);
 	}
 
-	return t != -1;
+	return (Primitive**) primitives;
 }
 
+void textured_mesh_data::setUVs(const glm::vec2 *ptr)
+{
+	uvs = ptr;
+}
+
+Primitive** textured_mesh_data::allocatePrimitives() const
+{
+	UVTrianglePrimitive **primitives = new UVTrianglePrimitive*[numFaces];
+	for(int i = 0; i < numFaces; i++)
+	{
+		const prim_tri *indices = &faces[i];
+
+		Triangle t(verts[indices->x], verts[indices->y], verts[indices->z]);
+		UVTriangle uv(uvs[indices->x], uvs[indices->y], uvs[indices->z]);
+		primitives[i] = new UVTrianglePrimitive(t, uv, mat);
+	}
+
+	return (Primitive**) primitives;
+}
 
 
 
