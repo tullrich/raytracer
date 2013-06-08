@@ -103,8 +103,6 @@ inline float randf()
 std::string parentPath(const std::string path);
 std::string appendFilename(const std::string path, const std::string filename);
 
-extern bool debugvar;
-
 std::ostream& operator<<(std::ostream& o, const glm::vec3& b);
 std::ostream& operator<<(std::ostream& o, const glm::mat4& b);
 std::ostream& operator<<(std::ostream& o, const Triangle& b);
