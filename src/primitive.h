@@ -5,6 +5,7 @@
 #include "common.h"
 #include "aabb.h"
 #include "ray.h"
+#include "scenegraph.h"
 
 namespace raytracer {
 
@@ -24,6 +25,7 @@ public:
 	virtual glm::vec3 surfaceNormal() const = 0;
 	virtual glm::vec3 BRDF(const glm::vec4 &berycentric) const = 0;
 	virtual glm::vec3 Le(const glm::vec4 &berycentric) const = 0;
+	virtual void updateAABB(AABB &aabb) const = 0;
 };
 
 /**
@@ -43,7 +45,7 @@ public:
 	virtual glm::vec3 surfaceNormal() const;
 	virtual glm::vec3 BRDF(const glm::vec4 &berycentric) const;
 	virtual glm::vec3 Le(const glm::vec4 &berycentric) const;
-	
+	virtual void updateAABB(AABB &aabb) const;
 protected:
 	Triangle face;
 	const Material *material;

@@ -72,4 +72,9 @@ AABB TrianglePrimitive::bounds() const
 	return contains;
 }
 
+void TrianglePrimitive::updateAABB(AABB &aabb) const
+{
+	AABBContainTriangle(aabb, face);
+}
+
 } /* namespace raytracer */

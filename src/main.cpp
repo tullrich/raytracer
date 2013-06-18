@@ -8,7 +8,7 @@
 #include "scenegraph.h"
 #include "resources.h"
 #include "camera.h"
-#include "cgutils/cgutils.hpp"
+#include "cgutils.hpp"
 
 
 namespace po = boost::program_options;

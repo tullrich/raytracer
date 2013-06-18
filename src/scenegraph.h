@@ -13,6 +13,21 @@ typedef std::list<Light::light_ptr> LightList;
 typedef std::list<Entity::entity_ptr> EntityList;
 
 /**
+ * class containing the result of a success full ray cast
+ */
+class TraceResult
+{
+public:
+	TraceResult() : intersection(0), p(NULL) {};
+	TraceResult(const glm::vec4 &intersection, const Primitive *p);
+
+	glm::vec3 biasedIntersectionPoint() const;
+
+	glm::vec4 intersection; // barycentric coordinates representing a point on p->face
+	const Primitive *p; // primitive of intersection
+};
+
+/**
  * Holds scene information and facilitates quick ray 
  */
 class SceneGraph
@@ -20,14 +35,16 @@ class SceneGraph
 public:
 	SceneGraph() {};
 	virtual ~SceneGraph() {};
-	virtual void addEntity(Entity::entity_ptr entity) = 0;
+	virtual void addEntity(Entity::entity_ptr entity);
 	virtual void addLight(Light::light_ptr light);
 	virtual bool traceRay(const Ray &r, TraceResult &result) const = 0;
 	virtual void build() = 0;
 
 	bool testVisibility(const Ray &r, TraceResult &result) const;
 
-	
+protected:
+	virtual void addPrimitive(Primitive *p) = 0;
+public:
 	LightList lights;
 };
 
@@ -37,12 +54,13 @@ public:
 class ButeForceSceneGraphImp : public SceneGraph
 {
 public:
-	ButeForceSceneGraphImp();
+	ButeForceSceneGraphImp() {};
 	virtual ~ButeForceSceneGraphImp() {};
 
 	virtual bool traceRay(const Ray &r, TraceResult &result) const;
-	virtual void addEntity(Entity::entity_ptr entity);
 	virtual void build() {};
+protected:
+	virtual void addPrimitive(Primitive *p);
 private:
 	EntityList entities;
 	std::list<Primitive*> primitives;

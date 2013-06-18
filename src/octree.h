@@ -73,19 +73,21 @@ public:
 	virtual bool traceRay(const Ray &r, TraceResult &result) const;
 
 	/**
-	 * Temporarily attaches all entities to the root until build() is
-	 * next called
-	 * @param entity entity to add to this scenegraph
-	 */
-	virtual void addEntity(Entity::entity_ptr entity);
-
-	/**
 	 * construct the octree tree, pushing entities from the root node
 	 * down as far as possible
 	 */
 	virtual void build();
 	static long numCompares;
 
+protected:
+
+	/**
+	 * Temporarily attaches all entities to the root until build() is
+	 * next called
+	 * @param primitive to add to this scenegraph
+	 */
+	virtual void addPrimitive(Primitive *p);
+	
 private:
 
 	void buildOctree_r(OctNode *n, int stopDepth);

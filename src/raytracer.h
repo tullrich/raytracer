@@ -6,6 +6,7 @@
 #include "rtimage.h"
 #include "scenegraph.h"
 #include "common.h"
+#include "primitive.h"
 #include "material.h"
 #include "camera.h"
 #include "ray.h"

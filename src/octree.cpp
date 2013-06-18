@@ -334,8 +334,7 @@ float OctreeSceneGraphImp::optimalRootWidth()
 	int i = 0;
 	for (Primitive *p : root->primitives)
 	{
-		//std::cout << "check for containment " << p->bounds() << std::endl; 
-		AABBContainPrimitive(bounds, *p);
+		p->updateAABB(bounds);
 	}
 
 	return AABBMaxHalfWidth(bounds);
@@ -375,11 +374,6 @@ bool OctreeSceneGraphImp::traceRay(const Ray &r, TraceResult &result) const
 	unsigned char a = 0;
 	Ray mod_r = r;
 
-/*	static bool doOnce = true;
-	if (!doOnce)
-		return false;
-	doOnce = false;*/
-
 	if(r.n.x < 0)
 	{
 		mod_r.p.x = -mod_r.p.x;
@@ -412,35 +406,22 @@ bool OctreeSceneGraphImp::traceRay(const Ray &r, TraceResult &result) const
 	float tz0 = (root_bounds.min.z - mod_r.p.z) / mod_r.n.z; // entry t on z-axis
 	float tz1 = (root_bounds.max.z - mod_r.p.z) / mod_r.n.z; // exit t on z-axis
 
-	float max = fmaxf(tx0, fmaxf(ty0, tz0)); // earliest we are through all entry planes
-	float min = fminf(tx1, fminf(ty1, tz1)); // latest we are inside all exist planes
+	float max = fmaxf(tx0, fmaxf(ty0, tz0)); // earliest we are through all planes
+	float min = fminf(tx1, fminf(ty1, tz1)); // latest we are inside all exit planes
 	if(fmaxf(tx0, fmaxf(ty0, tz0)) < fminf(tx1, fminf(ty1, tz1)))
 	{
-		bool didFind = root->traceRay(r, result, tx0, ty0, tz0, tx1, ty1, tz1, a);
+		bool found = root->traceRay(r, result, tx0, ty0, tz0, tx1, ty1, tz1, a);
 
-		//std::cout << " found with " << numCompares << std::endl;
-		return didFind;
+		return found;
 	}
 
 	return false;
 }
 
-void OctreeSceneGraphImp::addEntity(Entity::entity_ptr entity)
+
+void OctreeSceneGraphImp::addPrimitive(Primitive *p)
 {
-	allEntities.push_back(entity);
-
-	for(mesh_data::mesh_ptr mesh : entity->meshes)
-	{
-		Primitive **primitives = mesh->allocatePrimitives();
-
-		for (int i = 0; i < mesh->numFaces; i++)
-		{
-			root->append(primitives[i]);
-		}
-
-		delete[] primitives;
-	}
-
+	root->append(p);
 }
 
 } /* namespace raytracer */
