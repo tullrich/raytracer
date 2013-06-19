@@ -1,3 +1,3 @@
 [submodule "external/cg-utils"]
 	path = external/cg-utils
-	url = /home/tim/workspace/./cg-utils/.git
+	url = https://github.com/tullrich/cg-utils.git
