@@ -8,12 +8,9 @@
 #include "scenegraph.h"
 #include "resources.h"
 #include "camera.h"
-#include "cgutils.hpp"
-
 
 namespace po = boost::program_options;
 using namespace raytracer;
-using namespace std;
 
 /**
  * ensure valid inputs after parsing
@@ -22,28 +19,7 @@ using namespace std;
  */
 static bool validateInput(po::variables_map &vm)
 {
-    return vm.count(OPTION_ASSETPATH);
-}
-
-/**
- * open open input file CONFIG_FILEPATH and read it into the store using the provided options_description
- * @param options options to read from the config filename
- * @param vm      the value map to update
- */
-static void parseConfig(const po::options_description &options, po::variables_map &vm) 
-{
-    ifstream config_file(CONFIG_FILEPATH);
-
-    if (config_file.is_open())
-    {
-        po::store(po::parse_config_file(config_file, options), vm);
-    }
-    else
-    {
-        cout << "WARNING: No input file named " << CONFIG_FILEPATH << " found" << endl;
-    }
-
-    //TODO: feels like a try/finally is needed
+    return vm.count(OPTION_ASSETPATH) > 0;
 }
 
 /**
@@ -58,22 +34,20 @@ static bool getInput(int argc, char *argv[], po::variables_map &vm)
     // commandline configurable only
     po::options_description pd_cmd("Options");
     pd_cmd.add_options()
-        ("help", "produce help message")
-    ;
+        ("help", "produce help message");
 
     // configurable in the config file and cmdline
     po::options_description pd_config("Configuration");
     pd_config.add_options()
-        (OPTION_OUTPATH, po::value< string >(), "image output filename")
+        (OPTION_OUTPATH, po::value< std::string >(), "image output filename")
         (OPTION_WIDTH, po::value<int>(), "set image output width")
         (OPTION_HEIGHT, po::value<int>(), "set image output height")
-    ;
+		(OPTION_THREADS, po::value<int>(), "number of threads.");
 
     // same as pd_config, but will not be displayed in the help text
     po::options_description pd_hidden("Hidden options");
     pd_hidden.add_options()
-        (OPTION_ASSETPATH, po::value< vector<string> >(), "input asset file filename")
-    ;   
+        (OPTION_ASSETPATH, po::value<std::vector<std::string>>(), "input asset file filename");
 
     po::positional_options_description pod;
     pod.add(OPTION_ASSETPATH, -1);
@@ -86,36 +60,33 @@ static bool getInput(int argc, char *argv[], po::variables_map &vm)
     po::options_description config_file_options;
     config_file_options.add(pd_config).add(pd_hidden);
 
-    po::store(po::command_line_parser(argc, argv).options(cmdline_options).positional(pod).run(), vm);
-    parseConfig(config_file_options, vm);
-    po::notify(vm); 
+	// actual parse and store
+	bool ret = false;
+	try
+	{
+		po::store(po::command_line_parser(argc, argv).options(cmdline_options).positional(pod).run(), vm);
+		po::store(po::parse_config_file<char>(CONFIG_FILEPATH, config_file_options), vm);
+		po::notify(vm);
+		ret = validateInput( vm );
+	}
+	catch (boost::program_options::invalid_option_value& v)
+	{
+		std::cout << "error:" << v.what() << std::endl;
+	}
 
     // print help if bad inputs are found or its requested
-    if (!validateInput(vm) || vm.count("help"))
+    if (!ret || vm.count( "help" ) )
     {
-        po::options_description visible("Allowed options");
+        po::options_description visible;
         visible.add(pd_cmd).add(pd_config);
 
-        cout << "Usage: raytracer [options] asset-filepath..." << endl;
-        cout << visible << endl;
-
-        return false;
+        std::cout << "usage: raytracer [options] <filepath>" << std::endl
+			<< visible << std::endl;
     }
 
-    return true;
+    return ret;
 }
 
-/**
- * set var option from om[option_name] as an int
- * @param option      var to set
- * @param option_name string name of the option
- * @param om          map of options
- */
-static inline void getIntOption(int &option, const string &option_name, const po::variables_map &om)
-{
-
-    option = om[option_name].as<int>();
-}
 
 /**
  * create a {@link Raytracer} from input map vm.
@@ -124,35 +95,35 @@ static inline void getIntOption(int &option, const string &option_name, const po
  */
 static Raytracer* buildRayTracer(const po::variables_map &vm)
 {
-    int i;
-    string filename_str;
-    RaytraceBuilder builder;
-    Raytracer *tracer;
-
     // option height
+	int height = DEFAULT_IMG_HEIGHT;
     if (vm.count(OPTION_HEIGHT))
     {
-        i = 0;
-        getIntOption(i, OPTION_HEIGHT, vm);
-        builder.setHeight(i);
+		height = vm[OPTION_HEIGHT].as<int>();
     }
 
     // option width
+	int width = DEFAULT_IMG_WIDTH;
     if (vm.count(OPTION_WIDTH))
     {
-        i = 0;
-        getIntOption(i, OPTION_WIDTH, vm);
-        builder.setWidth(i);
+		width = vm[OPTION_WIDTH].as<int>();
     }
 
     // option outpath
+	std::string filename = DEFAULT_OUT_PATH;
     if (vm.count(OPTION_OUTPATH))
     {
-        filename_str = vm[OPTION_OUTPATH].as< string >();
-        builder.setOutpath(filename_str);
+		filename = vm[OPTION_OUTPATH].as<std::string>();
     }
 
-    return builder.buildRaytracer();
+	// option threads
+	int threadNum = DEFAULT_THREAD_COUNT;
+	if ( vm.count(OPTION_THREADS) )
+	{
+		threadNum = vm[OPTION_THREADS].as<int>();
+	}
+
+	return new Raytracer(filename, width, height, threadNum);
 }
 
 /**
@@ -160,117 +131,108 @@ static Raytracer* buildRayTracer(const po::variables_map &vm)
  * @param sb   sceneinjector for the scene we are adding too
  * @param path filename to load
  */
-static void addToScene(const SceneGraphInjector &sb, string &path, Camera* &cam)
+static void addToScene(const SceneGraphInjector &sb, std::string &path)
 {
-    unique_ptr<AssetReader> reader = ResourceLoaderFactory::getReaderForFiletype(path);
-    
+	std::unique_ptr<AssetReader> reader = ResourceLoaderFactory::getReaderForFiletype(path);
+
     if(reader)
     {
         if(reader->open(path))
-        {  
+        {
             // add everything into the Scenegraph
             reader->accept((EntityVisitor&)sb);
             reader->accept((LightVisitor&)sb);
-
-            if(cam == NULL)
-            {
-                cam = reader->getCamera();
-            }
         }
         else
         {
-            cout << "Warning: problem opening asset file '" << path << "'" << endl;
+			std::cout << "Warning: problem opening asset file '" << path << "'" << std::endl;
         }
     }
     else
     {
-        cout << "Warning: unsupported file type '" << path << "'" << endl;
+		std::cout << "Warning: unsupported file type '" << path << "'" << std::endl;
     }
-} 
+}
 
 /**
  * create a {@link Scenegraph} from input map vm
  * @param vm [description]
  * @return fully configured {@link SceneGraph}
  */
-static SceneGraph* buildScene(const po::variables_map &vm, Camera* &cam)
+static SceneGraph* buildScene(const po::variables_map &vm)
 {
     SceneGraph *scene;
-    vector<string> assetpaths;
+	std::vector<std::string> assetpaths;
 
-    CGUTILS_ASSERT(vm.count(OPTION_ASSETPATH)); // bomb if we somehow got here without assets
+    RAYTRACER_ASSERT(vm.count(OPTION_ASSETPATH)); // bomb if we somehow got here without assets
 
-    assetpaths = vm[OPTION_ASSETPATH].as< vector<string> >();
+    assetpaths = vm[OPTION_ASSETPATH].as< std::vector<std::string> >();
     scene = SceneGraphFactory::getSceneGraph();
     SceneGraphInjector injector(scene);
 
-    for (string filename : assetpaths)
+    for (std::string filename : assetpaths)
     {
-        cout << "Processing assetfile " << filename << "... " << std::flush;
-        addToScene(injector, filename, cam);
-        cout << "done" << endl;
+		std::cout << "Processing assetfile " << filename << "... " << std::flush;
+        addToScene(injector, filename);
+		std::cout << "done" << std::endl;
     }
 
-    cout << "Building scene... " << std::flush;
+	std::cout << "Building scene... " << std::flush;
     scene->build();
-    cout << "done" << endl;
+	std::cout << "done" << std::endl;
 
     return scene;
 }
 
 static Camera* buildCamera(const po::variables_map &vm)
 {
-    int x_res = 0;
-    int y_res = 0;
-
     // option height
-    if (vm.count(OPTION_HEIGHT))
+    int x_res = DEFAULT_IMG_HEIGHT;
+    if (vm.count(OPTION_WIDTH))
     {
-        getIntOption(y_res, OPTION_HEIGHT, vm);
+		x_res = vm[OPTION_WIDTH].as<int>();
     }
 
     // option width
-    if (vm.count(OPTION_WIDTH))
+    int y_res = DEFAULT_IMG_WIDTH;
+    if (vm.count(OPTION_HEIGHT))
     {
-        getIntOption(x_res, OPTION_WIDTH, vm);
+		y_res = vm[OPTION_HEIGHT].as<int>();
     }
     return new Camera(x_res, y_res);
 }
 
 int main(int argc, char *argv[])
 {
-    Raytracer *tracer;
-    SceneGraph *scene;
-    Light *light;
-    Camera *cam = NULL;
     po::variables_map vm;
-
     if (!getInput(argc, argv, vm))
     {
         // bad input
         return 1;
     }
 
-    tracer = buildRayTracer(vm);
-    scene = buildScene(vm, cam);
-    cam = buildCamera(vm); // TODO: fix this
-    tracer->setScene(scene);
+	Raytracer* tracer = buildRayTracer(vm);
 
+	SceneGraph* scene = buildScene(vm);
+	tracer->setScene(scene);
 
-    tracer->setCamera(cam);
+	Camera* camera = buildCamera(vm);
+    tracer->setCamera(camera);
 
-    //light = new AreaLight("custom", glm::vec3(1, 0, 0), glm::vec3(0, 0, 1));
-    light = new PointLight("custom");
-    light->setLocation(glm::vec3(-0.5f, 1.90, -0.5f), glm::vec3(0));
-    light->setColor(RGB(0), RGB(7.0f, 7.0f, 7.0f), RGB(0));
-    light->setAttenuation(1.0f, 0.00f, 0.005f);
+	Light* light = new PointLight("custom");
+    light->setLocation(glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(0));
+    light->setColor(RGB(0), RGB(1.0f, 1.0f, 1.0f), RGB(0));
+    light->setAttenuation( 1.0f, 0.01f, 0.0003f );
     scene->addLight(Light::light_ptr(light));
 
-    cout << "Tracing scene... " << std::flush;
+	std::cout << "tracing scene... " << std::flush;
     tracer->run();
-    cout << "done" << endl;
+	std::cout << "done" << std::endl;
 
+	std::cout << "stats:" << std::endl;
+	std::cout << tracer->getStats() << std::endl;
 
+	delete camera;
     delete tracer;
     delete scene;
 

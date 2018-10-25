@@ -13,6 +13,7 @@ OctNode::~OctNode()
 	}
 }
 
+#pragma optimize("", off)
 void OctNode::append(Primitive *prim)
 {
 	primitives.push_back(prim);
@@ -68,7 +69,7 @@ void OctNode::pushDown()
 			j++;
 		}
 		//if(child[i]->primitives.size() > 0)
-		//std::cout << "gave child " << i << " " << child[i]->primitives.size() << " primitives " << std::endl; 
+		//std::cout << "gave child " << i << " " << child[i]->primitives.size() << " primitives " << std::endl;
 	}
 	int n = 0;
 	int i = 0;
@@ -77,14 +78,14 @@ void OctNode::pushDown()
 		if(count[i] <= 0)
 		{
 			n++;
-			//std::cout << "broken primitive " << reinterpret_cast<TrianglePrimitive*>(p)->face << std::endl; 
+			//std::cout << "broken primitive " << reinterpret_cast<TrianglePrimitive*>(p)->face << std::endl;
 		}
 		i++;
 	}
-	delete count;
-	//CGUTILS_ASSERT(n == 0); // if we didnt overlap >=1 child, its a bug
+	delete[] count;
+	//RAYTRACER_ASSERT(n == 0); // if we didnt overlap >=1 child, its a bug
 	primitives.clear();
-	
+
 }
 
 void OctNode::allocateChild(unsigned int zone)
@@ -130,69 +131,67 @@ void OctNode::childAabb(AABB &aabb, unsigned int zone)
 		aabb.min[i] = childCenter[i] - childHalfWidth;
 	}
 }
+#pragma optimize("", on)
 
 bool OctNode::testPrimitives(const Ray &r, TraceResult &result)
 {
-	TraceResult temp_result;
+	glm::vec4 intersection;
 	bool found_one = false;
-
 	for(Primitive *p : primitives)
 	{
-		if(p->intersects(r, temp_result))
+		if(p->intersects(r, intersection))
 		{
-			if (!found_one || temp_result.intersection.w < result.intersection.w)
+			if (!found_one || intersection.w < result.intersection.w)
 			{
 				found_one = true;
-				result = temp_result;
+				result.intersection = intersection;
+				result.p = p;
 			}
 		}
 	}
 
-	OctreeSceneGraphImp::numCompares += primitives.size();
-	//std::cout << "got here    found " << found_one << std::endl; 
+	result.primitiveIntersections += primitives.size();
 	return found_one;
 }
 
 static unsigned char first_node(float tx0, float ty0, float tz0, float txm, float tym, float tzm)
 {
 	unsigned char ret_value = 0;
-	float compare = fmaxf(tx0, fmaxf(ty0, tz0));
-
-	if(tx0 == compare) // entry plane YZ
+	if(tx0 > ty0)
 	{
-		if(tym < tx0) ret_value |= 2;
-		if(tzm < tx0) ret_value |= 1;
+		if (tx0 > tz0) // entry plane YZ
+		{
+			if (tym < tx0) ret_value |= 2;
+			if (tzm < tx0) ret_value |= 1;
+			return ret_value;
+		}
 	}
-	else if(ty0 == compare) // entry plane XZ
+	else 
 	{
-		if(txm < ty0) ret_value |= 4;
-		if(tzm < ty0) ret_value |= 1;
-	} 
-	else // entry plane XY
-	{
-		if(txm < tz0) ret_value |= 4;
-		if(tym < tz0) ret_value |= 2;
+		if (ty0 > tz0)// entry plane XZ
+		{
+			if (txm < ty0) ret_value |= 4;
+			if (tzm < ty0) ret_value |= 1;
+			return ret_value;
+		}
 	}
-
+	// entry plane XY
+	if(txm < tz0) ret_value |= 4;
+	if(tym < tz0) ret_value |= 2;
 	return ret_value;
 }
 
 static unsigned char next_node(float txm, unsigned char next_in_x, float tym, unsigned char next_in_y, float tzm, unsigned char next_in_z)
 {
-	float compare = fminf(txm, fminf(tym, tzm));
-
-	if(txm == compare) // exit plane YZ
+	if ( txm < tym )
 	{
-		return next_in_x;
+		if ( txm < tzm ) { return next_in_x; }  // YZ plane
 	}
-	else if(tym == compare) // exit plane XZ
+	else
 	{
-		return next_in_y;
-	} 
-	else // exit plane XY
-	{
-		return next_in_z;
+		if ( tym < tzm ) { return next_in_y; } // XZ plane
 	}
+	return next_in_z; // XY plane;
 }
 
 bool OctNode::traceRay(const Ray &r, TraceResult &result, float tx0,float ty0, float tz0, float tx1, float ty1, float tz1, unsigned char a)
@@ -202,12 +201,12 @@ bool OctNode::traceRay(const Ray &r, TraceResult &result, float tx0,float ty0, f
 		return false;
 	}
 
+	result.nodesTraversed++;
+
 	if(isLeaf())
 	{
-		//std::cout << " in a child " << std::endl; 
-		return testPrimitives(r, result);
+		return testPrimitives( r, result );
 	}
-	//std::cout << " in a parent " << std::endl; 
 
 	float txm = 0.5f * (tx0 + tx1); // t value when the ray intersects the x-axis of this node
 	float tym = 0.5f * (ty0 + ty1); // t value when the ray intersects the y-axis of this node
@@ -225,7 +224,6 @@ bool OctNode::traceRay(const Ray &r, TraceResult &result, float tx0,float ty0, f
 					return true;
 				}
 				currNode = next_node(txm, 4, tym, 2, tzm, 1);
-				//currNode = new_node()
 				break;
 			}
 			case 1 :
@@ -235,7 +233,6 @@ bool OctNode::traceRay(const Ray &r, TraceResult &result, float tx0,float ty0, f
 					return true;
 				}
 				currNode = next_node(txm, 5, tym, 3, tz1, 8);
-				//currNode = new_node()
 				break;
 			}
 			case 2 :
@@ -245,7 +242,6 @@ bool OctNode::traceRay(const Ray &r, TraceResult &result, float tx0,float ty0, f
 					return true;
 				}
 				currNode = next_node(txm, 6, ty1, 8, tzm, 3);
-				//currNode = new_node()
 				break;
 			}
 			case 3 :
@@ -255,7 +251,6 @@ bool OctNode::traceRay(const Ray &r, TraceResult &result, float tx0,float ty0, f
 					return true;
 				}
 				currNode = next_node(txm, 7, ty1, 8, tz1, 8);
-				//currNode = new_node()
 				break;
 			}
 			case 4 :
@@ -265,7 +260,6 @@ bool OctNode::traceRay(const Ray &r, TraceResult &result, float tx0,float ty0, f
 					return true;
 				}
 				currNode = next_node(tx1, 8, tym, 6, tzm, 5);
-				//currNode = new_node()
 				break;
 			}
 			case 5 :
@@ -275,7 +269,6 @@ bool OctNode::traceRay(const Ray &r, TraceResult &result, float tx0,float ty0, f
 					return true;
 				}
 				currNode = next_node(tx1, 8, tym, 7, tz1, 8);
-				//currNode = new_node()
 				break;
 			}
 			case 6 :
@@ -285,7 +278,6 @@ bool OctNode::traceRay(const Ray &r, TraceResult &result, float tx0,float ty0, f
 					return true;
 				}
 				currNode = next_node(tx1, 8, ty1, 8, tzm, 7);
-				//currNode = new_node()
 				break;
 			}
 			case 7 :
@@ -295,7 +287,6 @@ bool OctNode::traceRay(const Ray &r, TraceResult &result, float tx0,float ty0, f
 					return true;
 				}
 				currNode = 8;
-				//currNode = new_node()
 				break;
 			}
 		}
@@ -303,8 +294,6 @@ bool OctNode::traceRay(const Ray &r, TraceResult &result, float tx0,float ty0, f
 
 	return false;
 }
-
-long OctreeSceneGraphImp::numCompares = 0;
 
 OctreeSceneGraphImp::OctreeSceneGraphImp(int treeDepth)
 {
@@ -359,18 +348,20 @@ void OctreeSceneGraphImp::pushDown_r(OctNode *n, int stopDepth)
 	if (stopDepth == 0)
 		return;
 
-	n->pushDown();
-
-	for(int i = 0; i < 8; i++)
+	if ( n->primitives.size() > 5 )
 	{
-		if(n->child[i])
-			pushDown_r(n->child[i], stopDepth - 1);
+		n->pushDown();
+
+		for ( int i = 0; i < 8; i++ )
+		{
+			if ( n->child[ i ] )
+				pushDown_r( n->child[ i ], stopDepth - 1 );
+		}
 	}
 }
 
 bool OctreeSceneGraphImp::traceRay(const Ray &r, TraceResult &result) const
 {
-	numCompares = 0;
 	unsigned char a = 0;
 	Ray mod_r = r;
 
@@ -410,9 +401,7 @@ bool OctreeSceneGraphImp::traceRay(const Ray &r, TraceResult &result) const
 	float min = fminf(tx1, fminf(ty1, tz1)); // latest we are inside all exit planes
 	if(fmaxf(tx0, fmaxf(ty0, tz0)) < fminf(tx1, fminf(ty1, tz1)))
 	{
-		bool found = root->traceRay(r, result, tx0, ty0, tz0, tx1, ty1, tz1, a);
-
-		return found;
+		return root->traceRay(r, result, tx0, ty0, tz0, tx1, ty1, tz1, a);
 	}
 
 	return false;

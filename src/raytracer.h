@@ -2,7 +2,7 @@
 #define _RAYTRACER_H_
 
 #include <string>
-#include <boost/thread.hpp>
+#include <atomic>
 #include "rtimage.h"
 #include "scenegraph.h"
 #include "common.h"
@@ -13,31 +13,65 @@
 
 namespace raytracer {
 
-using std::string;
-using namespace raytracer::image;
+
+/**
+* performance stats for a Raytracer instance.
+*/
+class RaytracerStats
+{
+public:
+	RaytracerStats() 
+	{
+		reset();
+	}
+
+	void reset()
+	{
+		totalTime = 0;
+		totalPrimitiveIntersections = 0;
+		totalRaysCast = 0;
+		raysHit = 0;
+		raysMissed = 0;
+		totalNodeTraversals = 0;
+	}
+
+	// in milliseconds
+	long long totalTime;
+	
+	// total number of primitive intersections computed
+	std::atomic<long long> totalPrimitiveIntersections;
+
+	// Total number of rays cast
+	std::atomic<long long> totalRaysCast, raysHit, raysMissed;
+
+	// Total number of scenegraph node traversals
+	std::atomic<long long> totalNodeTraversals;
+};
 
 /**
  * raytracer root
  */
-class Raytracer 
+class Raytracer
 {
 public:
-	Raytracer(const string &outputfile, int height, int width);
+	Raytracer(const std::string &outputfile, int height, int width, int numThreads);
 	~Raytracer();
 
-	string& getOutpath() { return outpath; };
-	void setOutpath(const string &newpath) {  outpath = newpath; };
+	std::string& getOutpath() { return outpath; };
+	void setOutpath(const std::string &newpath) {  outpath = newpath; };
 
 	/**
 	 * run the raytrace algorithm
 	 */
-	void trace(int u_min, int u_max);
+	void render(int u_min, int u_max);
 	void run();
 
 	/* setters */
 	void setScene(SceneGraph *scene) { this->scene = scene; };
 	void setCamera(Camera *camera) { this->camera = camera; };
 
+	/* debug */
+	const RaytracerStats& getStats() const { return stats; }
 private:
 
 	RGB emittedRadiance(const TraceResult &r);
@@ -56,7 +90,7 @@ private:
     /**
      * image output pathname
      */
- 	string outpath;
+ 	std::string outpath;
 
  	/**
  	 * Scene info for the raytracer
@@ -67,34 +101,19 @@ private:
  	 * Camera for the renderer
  	 */
  	Camera *camera;
-};
-
-/**
- * {@ Raytrace} builder class with config functions and default values
- */
-class RaytraceBuilder
-{
-public:
-	/**
-	 * setup default input values
-	 */
-	RaytraceBuilder() : outputfile(DEFAULT_OUT_PATH), height(DEFAULT_IMG_HEIGHT), width(DEFAULT_IMG_WIDTH) {}
 
 	/**
-	 * allocates a new {@ Raytracer} on the heap configured with specified builder options 
-	 * @param om a map of options to be set
-	 */
-	Raytracer* buildRaytracer();
+	* Stats collected during a run.
+	*/
+	RaytracerStats stats;
 
-	/* setters */
-	void setOutpath(const string &newpath) {  outputfile = newpath; };
-	void setHeight(int height) { this->height = height; };
-	void setWidth(int width) { this->width = width; };
-private:
-	string outputfile;
-	int height;
-	int width;
+	/**
+	* The number of threads to use.
+	*/
+	int numThreads;
 };
+
+std::ostream& operator<<( std::ostream& os, const RaytracerStats& dt );
 
 } /* namespace raytracer */
 

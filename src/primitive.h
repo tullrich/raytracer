@@ -5,7 +5,6 @@
 #include "common.h"
 #include "aabb.h"
 #include "ray.h"
-#include "scenegraph.h"
 
 namespace raytracer {
 
@@ -16,7 +15,7 @@ class Primitive
 {
 public:
 	Primitive() {};
-	virtual bool intersects(const Ray &r,  TraceResult &result) const = 0;
+	virtual bool intersects(const Ray &r, glm::vec4 &intersectiont) const = 0;
 	virtual bool intersects(const AABB &aabb) const = 0;
 	virtual glm::vec3 barycentricToPoint(const glm::vec4 &berycentric) const = 0;
 	virtual AABB bounds() const = 0;
@@ -36,7 +35,8 @@ class TrianglePrimitive : public Primitive
 public:
 	TrianglePrimitive() : material(NULL) {};
 	TrianglePrimitive(const Triangle &face, const Material *material) : face(face), material(material) {};
-	virtual bool intersects(const Ray &r, TraceResult &result) const;
+	virtual bool intersects(const Ray &r, glm::vec4 &intersection) const;
+	bool intersects2( const Ray &r, glm::vec4 &intersection ) const;
 	virtual bool intersects(const AABB &aabb) const;
 	virtual glm::vec3 barycentricToPoint(const glm::vec4 &berycentric) const;
 	virtual AABB bounds() const;

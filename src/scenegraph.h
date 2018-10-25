@@ -4,7 +4,7 @@
 #include "common.h"
 #include "entity.h"
 #include "light.h"
-#include <list>
+#include <vector>
 
 namespace raytracer {
 
@@ -13,18 +13,19 @@ typedef std::list<Light::light_ptr> LightList;
 typedef std::list<Entity::entity_ptr> EntityList;
 
 /**
- * class containing the result of a success full ray cast
+ * Contains the result of a success full ray cast
  */
 class TraceResult
 {
 public:
-	TraceResult() : intersection(0), p(NULL) {};
-	TraceResult(const glm::vec4 &intersection, const Primitive *p);
+	TraceResult() : intersection(0), p(NULL), primitiveIntersections(0), nodesTraversed(0) {}
 
 	glm::vec3 biasedIntersectionPoint() const;
 
 	glm::vec4 intersection; // barycentric coordinates representing a point on p->face
 	const Primitive *p; // primitive of intersection
+	long long primitiveIntersections; // the number of intersections done while building this result
+	long long nodesTraversed; // total number of nodes traversed
 };
 
 /**
@@ -39,7 +40,6 @@ public:
 	virtual void addLight(Light::light_ptr light);
 	virtual bool traceRay(const Ray &r, TraceResult &result) const = 0;
 	virtual void build() = 0;
-
 	bool testVisibility(const Ray &r, TraceResult &result) const;
 
 protected:
@@ -63,7 +63,7 @@ protected:
 	virtual void addPrimitive(Primitive *p);
 private:
 	EntityList entities;
-	std::list<Primitive*> primitives;
+	std::vector<Primitive*> primitives;
 };
 
 /**

@@ -52,7 +52,7 @@ public:
 	glm::vec3 center;
 	float halfWidth;
 	OctNode *child[8];
-	std::list<Primitive*> primitives;
+	std::vector<Primitive*> primitives;
 };
 
 /**
@@ -77,7 +77,6 @@ public:
 	 * down as far as possible
 	 */
 	virtual void build();
-	static long numCompares;
 
 protected:
 

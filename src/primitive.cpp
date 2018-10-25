@@ -3,19 +3,15 @@
 
 namespace raytracer {
 
-bool TrianglePrimitive::intersects(const Ray &r,  TraceResult &result) const
+bool TrianglePrimitive::intersects(const Ray &r, glm::vec4 &intersection) const
 {
-	glm::vec4 intersection(0);
-
-	if (r.intersects(face, intersection))
-	{
-		result = TraceResult(intersection, this);
-		return true;
-	}
-
-	return false;
+	return r.intersects( face, intersection );
 }
 
+bool TrianglePrimitive::intersects2( const Ray &r, glm::vec4 &intersection ) const
+{
+	return r.intersects( face, intersection );
+}
 
 glm::vec3 TrianglePrimitive::barycentricToPoint(const glm::vec4 &berycentric) const
 {
@@ -27,7 +23,6 @@ glm::vec3 TrianglePrimitive::surfaceNormal() const
 {
 	return face.normal();
 }
-
 
 float TrianglePrimitive::geometricTerm(const glm::vec3 &direction) const
 {

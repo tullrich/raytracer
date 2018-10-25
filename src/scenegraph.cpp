@@ -1,21 +1,11 @@
-#include <assimp/Importer.hpp> 
+#include <assimp/Importer.hpp>
 #include <assimp/scene.h>
-#include <assimp/postprocess.h> 
+#include <assimp/postprocess.h>
 
 #include "scenegraph.h"
 #include "octree.h"
 
-
-
 namespace raytracer {
-
-bool debugvar = false;
-
-TraceResult::TraceResult(const glm::vec4 &intersection, const Primitive *p)
-{
-	this->intersection = intersection;
-	this->p          = p;
-}
 
 glm::vec3 TraceResult::biasedIntersectionPoint() const
 {
@@ -34,13 +24,13 @@ bool SceneGraph::testVisibility(const Ray &r, TraceResult &result) const
 
 	if (traceRay(r, result))
 	{
-		vec3 intersect_point = result.p->barycentricToPoint(result.intersection); 
+		vec3 intersect_point = result.p->barycentricToPoint(result.intersection);
 		if (glm::length(intersect_point - r.p) < d)
 		{
 			return false;
 		}
 	}
-	
+
 	return true;
 }
 
@@ -48,7 +38,7 @@ void SceneGraph::addEntity(Entity::entity_ptr entity)
 {
 	for(mesh_data::mesh_ptr mesh : entity->meshes)
 	{
-		bool hasUVs = mesh->getUVCount();
+		bool hasUVs = mesh->getUVCount() != 0;
 		for (int i = 0; i < mesh->numFaces; i++)
 		{
 			const prim_tri *indices = &(mesh->faces[i]);
@@ -75,41 +65,43 @@ void ButeForceSceneGraphImp::addPrimitive(Primitive *p)
 
 bool ButeForceSceneGraphImp::traceRay(const Ray &r, TraceResult &result) const
 {
-	TraceResult temp_result;
+	glm::vec4 intersection;
 	bool found_one = false;
-
 	for(Primitive *p : primitives)
 	{
-		if(p->intersects(r, temp_result))
+		if(p->intersects(r, intersection ))
 		{
-			if (!found_one || temp_result.intersection.w < result.intersection.w)
+			if (!found_one || intersection.w < result.intersection.w)
 			{
 				found_one = true;
-				result = temp_result;
+				result.intersection = intersection;
+				result.p = p;
 			}
 		}
 	}
 
+	result.nodesTraversed = 1;
+	result.primitiveIntersections = (int)primitives.size();
 	return found_one;
 }
 
 SceneGraph* SceneGraphFactory::getSceneGraph()
 {
 	// preset for now
-	return new OctreeSceneGraphImp(12);
+	return new OctreeSceneGraphImp(18);
 }
 
 
 void SceneGraphInjector::visit(Entity::entity_ptr &entity) const
 {
-	CGUTILS_ASSERT(scene != NULL)
+	RAYTRACER_ASSERT(scene != NULL);
 
 	scene->addEntity(entity);
 }
 
 void SceneGraphInjector::visit(Light::light_ptr &light) const
 {
-	CGUTILS_ASSERT(scene != NULL)
+	RAYTRACER_ASSERT(scene != NULL);
 
 	scene->addLight(light);
 }
